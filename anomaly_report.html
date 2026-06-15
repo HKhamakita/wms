@@ -1,0 +1,1315 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>異常報告 - 早津工業社</title>
+<style>
+/* ════════════════════════════════════════
+   TOKENS  — 通常：白テーマ (梱包アプリ準拠)
+════════════════════════════════════════ */
+:root{
+  /* 白テーマ（通常ロール） */
+  --bg:#f4f6fb;--surface:#ffffff;--surface2:#eef1f8;--border:#c8d0e8;
+  --text:#111827;--text2:#374151;--text3:#6b7280;
+  --blue:#1a3faf;--blue2:#2550d0;
+  --green:#145a1e;--green2:#1d8a2a;
+  --orange:#a03800;--orange2:#c05800;
+  --red:#8b0000;--red2:#c0392b;
+  --yellow:#7a5500;--yellow2:#b07800;
+  --rad:8px;--rad-lg:12px;
+  --shadow:0 1px 4px rgba(0,0,0,.08);--shadow-md:0 2px 10px rgba(0,0,0,.12);
+  --header-h:52px;--tabs-h:48px;
+  /* 基本フォントサイズ: 梱包アプリ13px × 1.5 = 約20px */
+  --fs-base:20px;--fs-sm:18px;--fs-xs:16px;--fs-xxs:14px;--fs-lg:22px;--fs-xl:26px;
+}
+
+/* ── administrator ダークテーマ (WMS準拠) ── */
+body[data-role="administrator"]{
+  --bg:#0f1117;--surface:#1a1d2e;--surface2:#232640;--border:#2e3354;
+  --text:#e8eaf6;--text2:#9fa8da;--text3:#5c6bc0;
+  --blue:#3f51b5;--blue2:#7986cb;
+  --green:#1b5e20;--green2:#66bb6a;
+  --orange:#e65100;--orange2:#ffa726;
+  --red:#b71c1c;--red2:#ef5350;
+  --yellow:#f57f17;--yellow2:#ffee58;
+  --shadow:0 1px 4px rgba(0,0,0,.3);--shadow-md:0 2px 10px rgba(0,0,0,.5);
+}
+body[data-role="administrator"] #lang-bar{background:rgba(15,17,23,.97);}
+body[data-role="administrator"] #tabs{background:rgba(15,17,23,.98);}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:'Hiragino Sans','Meiryo',sans-serif;font-size:var(--fs-base);
+  height:100dvh;overflow:hidden;display:flex;flex-direction:column;
+}
+
+/* ── HEADER ── */
+#header{
+  height:var(--header-h);background:var(--blue);color:#fff;
+  display:flex;align-items:center;padding:0 16px;gap:12px;flex-shrink:0;
+  box-shadow:0 2px 6px rgba(0,0,0,.4);
+}
+#header-title{font-size:15px;font-weight:800;letter-spacing:.5px;}
+.header-spacer{flex:1;}
+#header-user{font-size:11px;opacity:.8;}
+#logout-btn{font-size:11px;padding:4px 10px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:8px;color:#fff;cursor:pointer;}
+#logout-btn:hover{background:rgba(255,255,255,.25);}
+#header-date{font-size:11px;opacity:.8;}
+
+/* ── LANG BAR ── */
+#lang-bar{
+  height:34px;background:var(--surface2);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 14px;gap:8px;flex-shrink:0;
+}
+.lang-btn{background:var(--surface);border:1.5px solid var(--border);color:var(--text2);padding:2px 10px;border-radius:12px;font-size:var(--fs-xxs);font-weight:700;cursor:pointer;}
+.lang-btn.active{background:var(--blue2);border-color:var(--blue2);color:#fff;}
+#lang-bar-spacer{flex:1;}
+#lang-bar-sync{font-size:var(--fs-xxs);color:var(--text3);}
+
+/* ── TABS ── */
+#tabs{
+  height:var(--tabs-h);background:var(--surface);
+  border-bottom:2px solid var(--border);display:flex;flex-shrink:0;
+}
+.tab-btn{
+  flex:1;display:flex;align-items:center;justify-content:center;gap:5px;
+  border:none;background:none;color:var(--text3);cursor:pointer;
+  font-size:var(--fs-xxs);font-weight:700;font-family:inherit;
+  border-bottom:3px solid transparent;transition:all .15s;padding:0 8px;
+}
+.tab-btn:hover{color:var(--text2);background:var(--surface2);}
+.tab-btn.active{color:var(--blue2);border-bottom-color:var(--blue2);}
+.tab-btn .ti{font-size:22px;}
+
+/* ── SCREENS ── */
+#screens{flex:1;overflow:hidden;position:relative;}
+.screen{display:none;height:100%;overflow-y:auto;flex-direction:column;}
+.screen.active{display:flex;}
+
+/* ── BUTTONS ── */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:5px;
+  padding:9px 16px;border-radius:var(--rad);border:none;
+  font-size:var(--fs-sm);font-weight:700;font-family:inherit;cursor:pointer;transition:all .15s;
+}
+.bp{background:var(--blue2);color:#fff;} .bp:hover{background:var(--blue);}
+.bg2{background:var(--green2);color:#fff;} .bg2:hover{filter:brightness(.85);}
+.bd{background:var(--red2);color:#fff;} .bd:hover{background:var(--red);}
+.bo{background:var(--orange2);color:#111;} .bo:hover{filter:brightness(.85);}
+.bgh{background:var(--surface2);color:var(--text2);border:1px solid var(--border);} .bgh:hover{background:var(--border);}
+.bsm{padding:5px 12px;font-size:var(--fs-xxs);}
+.blg{padding:13px 22px;font-size:var(--fs-lg);}
+.bfull{width:100%;}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+
+/* ── CARDS ── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rad-lg);padding:16px;box-shadow:var(--shadow);}
+.card-label{font-size:var(--fs-xxs);font-weight:700;color:var(--text3);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px;}
+
+/* ── FORMS ── */
+.inp{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--rad);font-size:var(--fs-sm);font-family:inherit;outline:none;background:var(--surface);color:var(--text);}
+.inp:focus{border-color:var(--blue2);}
+.inp.auto-filled{border-color:var(--green2);color:var(--green2);}
+.inp[readonly]{color:var(--text3);cursor:default;}
+.inp-label{font-size:var(--fs-xxs);font-weight:700;color:var(--text2);margin-bottom:5px;display:block;}
+.req{color:var(--orange2);}
+.form-row{margin-bottom:12px;}
+.form-row:last-child{margin-bottom:0;}
+select.inp{cursor:pointer;}
+select.inp option{background:var(--surface);color:var(--text);}
+textarea.inp{resize:vertical;min-height:72px;}
+
+/* ── BADGE ── */
+.badge{display:inline-block;padding:3px 10px;border-radius:10px;font-size:var(--fs-xxs);font-weight:700;}
+.badge-blue{background:rgba(37,80,208,.1);color:var(--blue2);}
+.badge-green{background:rgba(29,138,42,.1);color:var(--green2);}
+.badge-red{background:rgba(192,57,43,.1);color:var(--red2);}
+.badge-orange{background:rgba(192,88,0,.1);color:var(--orange2);}
+.badge-gray{background:var(--surface2);color:var(--text3);}
+
+/* ── SCAN BOX ── */
+.scan-box{background:rgba(37,80,208,.06);border:2px dashed var(--blue2);border-radius:var(--rad-lg);padding:14px;text-align:center;}
+.scan-box.waiting{border-color:var(--border);background:var(--surface2);}
+.scan-box label{font-size:var(--fs-xxs);font-weight:700;color:var(--blue2);display:block;margin-bottom:8px;}
+.scan-box.waiting label{color:var(--text3);}
+.scan-box.filled{border-color:var(--green2);background:rgba(29,138,42,.05);}
+.scan-box.filled label{color:var(--green2);}
+.scan-inp{width:100%;padding:10px 14px;border:2px solid var(--blue2);border-radius:var(--rad);font-size:var(--fs-lg);font-weight:700;font-family:inherit;text-align:center;outline:none;background:var(--surface);color:var(--text);letter-spacing:1px;}
+.scan-inp:focus{box-shadow:0 0 0 3px rgba(37,80,208,.15);}
+.scan-inp:disabled{background:var(--surface2);border-color:var(--border);color:var(--text3);cursor:not-allowed;}
+.scan-inp.filled{border-color:var(--green2);}
+
+/* ── INFO GRID ── */
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.info-item{background:var(--surface2);border-radius:var(--rad);padding:10px;}
+.info-item.span2{grid-column:span 2;}
+.info-label{font-size:var(--fs-xxs);color:var(--text3);font-weight:700;margin-bottom:2px;}
+.info-value{font-size:var(--fs-base);font-weight:800;color:var(--text);word-break:break-all;}
+.info-value.accent{color:var(--blue2);font-size:var(--fs-lg);}
+
+/* ── TYPE SELECT ── */
+.type-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.type-card{
+  padding:20px 14px;border-radius:var(--rad-lg);
+  border:2px solid var(--border);background:var(--surface2);
+  color:var(--text3);cursor:pointer;text-align:center;transition:all .18s;
+}
+.type-card:hover{border-color:var(--blue2);color:var(--text);}
+.type-card.sel{border-color:var(--blue2);background:rgba(37,80,208,.08);color:var(--blue2);}
+.type-card .tc-icon{font-size:32px;display:block;margin-bottom:8px;}
+.type-card .tc-name{font-size:var(--fs-lg);font-weight:800;}
+.type-card .tc-sub{font-size:var(--fs-xxs);margin-top:4px;opacity:.75;}
+
+/* ── PHENOM CHIPS ── */
+.phenom-list{display:flex;flex-wrap:wrap;gap:8px;}
+.phenom-chip{
+  padding:8px 16px;border-radius:20px;
+  border:1.5px solid var(--border);background:var(--surface2);
+  color:var(--text3);font-size:var(--fs-sm);font-weight:700;cursor:pointer;transition:all .15s;
+}
+.phenom-chip.sel{border-color:var(--orange2);background:rgba(192,88,0,.08);color:var(--orange2);}
+
+/* ── CHECK LIST ── */
+.check-list{display:flex;flex-direction:column;gap:6px;}
+.check-item{
+  display:flex;align-items:center;gap:12px;
+  background:var(--surface2);border:1.5px solid var(--border);
+  border-radius:var(--rad);padding:10px 14px;cursor:pointer;transition:border-color .15s;
+}
+.check-item.chk{border-color:var(--blue2);background:rgba(37,80,208,.06);}
+.check-item input[type=checkbox]{accent-color:var(--blue2);width:18px;height:18px;}
+.check-item-code{font-size:var(--fs-xxs);color:var(--text3);font-family:monospace;}
+.check-item-name{font-size:var(--fs-sm);color:var(--text2);margin-top:2px;}
+
+/* ── STEP FLOW ── */
+.step-block{margin:0 14px 14px;}
+.step-head{display:flex;align-items:center;gap:12px;padding:12px 0 8px;}
+.step-num{
+  width:30px;height:30px;border-radius:50%;
+  background:var(--blue2);color:#fff;font-size:var(--fs-sm);font-weight:800;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.step-num.done{background:var(--green2);}
+.step-title{font-size:var(--fs-base);font-weight:800;color:var(--text);}
+.step-sub{font-size:var(--fs-xxs);color:var(--text3);margin-top:2px;}
+.step-content{background:var(--surface);border:1px solid var(--border);border-radius:var(--rad-lg);padding:16px;}
+.step-content.locked{opacity:.38;pointer-events:none;}
+.step-content.done-border{border-color:var(--green2);}
+
+/* ── PROG BAR ── */
+#prog-bar{height:3px;background:var(--border);flex-shrink:0;}
+#prog-fill{height:100%;background:var(--blue2);transition:width .4s;}
+
+/* ── HISTORY CARDS ── */
+.hist-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--rad-lg);padding:14px 16px;margin-bottom:10px;
+}
+.hist-card.sel-chk{border-color:var(--blue2);background:rgba(37,80,208,.05);}
+.hist-card:hover{border-color:var(--border);cursor:default;}
+.hist-card.selectable:hover{border-color:var(--blue2);cursor:pointer;}
+.hc-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;}
+.hc-partno{font-size:var(--fs-lg);font-weight:800;color:var(--text);}
+.hc-name{font-size:var(--fs-xxs);color:var(--text3);margin-top:2px;}
+.hc-meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;font-size:var(--fs-xxs);color:var(--text3);}
+.roki-tag{display:inline-block;font-size:var(--fs-xxs);padding:2px 8px;border-radius:4px;background:rgba(192,88,0,.1);color:var(--orange2);font-weight:700;}
+
+/* ── MODAL ── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:flex-end;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal-box{background:var(--surface);border-radius:var(--rad-lg) var(--rad-lg) 0 0;border:1px solid var(--border);border-bottom:none;width:100%;max-width:600px;max-height:80dvh;overflow-y:auto;padding:20px;}
+.modal-title{font-size:var(--fs-lg);font-weight:800;margin-bottom:16px;}
+.modal-footer{display:flex;gap:8px;margin-top:16px;padding-top:14px;border-top:1px solid var(--border);}
+
+/* ── TOAST ── */
+#toast-wrap{position:fixed;top:14px;right:14px;z-index:9999;display:flex;flex-direction:column;gap:6px;pointer-events:none;}
+.toast{background:var(--surface);color:var(--text);padding:11px 18px;border-radius:var(--rad);font-size:var(--fs-sm);font-weight:700;box-shadow:var(--shadow-md);opacity:0;transform:translateX(20px);transition:all .22s;pointer-events:none;max-width:320px;border:1px solid var(--border);}
+.toast.show{opacity:1;transform:translateX(0);}
+.toast.success{border-left:4px solid var(--green2);}
+.toast.error{border-left:4px solid var(--red2);}
+.toast.info{border-left:4px solid var(--blue2);}
+.toast.warning{border-left:4px solid var(--orange2);}
+
+/* ── DATA TABLE ── */
+.data-table{width:100%;border-collapse:collapse;font-size:var(--fs-sm);}
+.data-table th{background:var(--surface2);color:var(--text3);font-weight:700;padding:9px 12px;text-align:left;border-bottom:2px solid var(--border);}
+.data-table td{padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text);}
+.data-table tr:hover td{background:var(--surface2);}
+
+/* date+today row */
+.date-row{display:flex;gap:6px;align-items:center;}
+.date-row .inp{flex:1;}
+
+/* filter chips */
+.filter-row{display:flex;gap:7px;padding:8px 14px 0;flex-shrink:0;}
+.fchip{padding:6px 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text3);font-size:var(--fs-xxs);font-weight:700;cursor:pointer;}
+.fchip.active{border-color:var(--blue2);background:rgba(37,80,208,.08);color:var(--blue2);}
+
+/* section divider */
+.sec-div{height:1px;background:var(--border);margin:14px 0;}
+</style>
+</head>
+<body>
+
+<!-- ════════════ HEADER ════════════ -->
+<div id="header">
+  <span id="header-title">⚠ 異常報告</span>
+  <span class="header-spacer"></span>
+  <span id="header-date"></span>
+  <span id="header-user"></span>
+  <button id="logout-btn" onclick="doLogout()">ログアウト</button>
+</div>
+
+<!-- ════════════ LANG BAR ════════════ -->
+<div id="lang-bar">
+  <button class="lang-btn active" onclick="setLang('JPN')">JPN</button>
+  <button class="lang-btn" onclick="setLang('POR')">POR</button>
+  <button class="lang-btn" onclick="setLang('FIL')">FIL</button>
+  <button class="lang-btn" onclick="setLang('VIE')">VIE</button>
+  <div id="lang-bar-spacer"></div>
+  <span id="lang-bar-sync"></span>
+</div>
+
+<!-- ════════════ TABS ════════════ -->
+<div id="tabs">
+  <button class="tab-btn active" id="tab-apply" onclick="switchTab('apply')"><span class="ti">📝</span><span id="tn-apply">申請</span></button>
+  <button class="tab-btn" id="tab-history" onclick="switchTab('history')"><span class="ti">📁</span><span id="tn-hist">履歴</span></button>
+  <button class="tab-btn" id="tab-export" onclick="switchTab('export')"><span class="ti">📊</span><span id="tn-export">Excel出力</span></button>
+</div>
+
+<!-- ════════════ SCREENS ════════════ -->
+<div id="screens">
+
+  <!-- ══ APPLY ══ -->
+  <div id="sc-apply" class="screen active">
+    <div id="prog-bar"><div id="prog-fill" style="width:0%"></div></div>
+
+    <!-- STEP 1 -->
+    <div class="step-block">
+      <div class="step-head">
+        <div class="step-num" id="sn1">1</div>
+        <div><div class="step-title" id="st1-title">作業者QRスキャン</div><div class="step-sub" id="st1-sub">自分のQRコードを読み取ってください</div></div>
+      </div>
+      <div class="step-content" id="sc1">
+        <div class="scan-box" id="sb-worker">
+          <label id="lbl-scan-worker">① 作業者QRをスキャン</label>
+          <input type="text" class="scan-inp" id="inp-worker" placeholder="QRコードをスキャン" autocomplete="off" spellcheck="false">
+        </div>
+        <div id="worker-info" style="display:none;margin-top:10px;">
+          <div class="info-grid">
+            <div class="info-item"><div class="info-label" id="lbl-wid">ID</div><div class="info-value" id="wi-id">—</div></div>
+            <div class="info-item"><div class="info-label" id="lbl-wname">氏名</div><div class="info-value" id="wi-name">—</div></div>
+            <div class="info-item span2"><div class="info-label">区分</div><div class="info-value" id="wi-category" style="font-size:var(--fs-sm);color:var(--text2);">—</div></div>
+          </div>
+        </div>
+        <div id="worker-manual-wrap" style="display:none;margin-top:10px;">
+          <div class="form-row">
+            <label class="inp-label" id="lbl-wmanual">氏名（手入力）<span class="req">*</span></label>
+            <input class="inp" id="inp-worker-manual" type="text" placeholder="氏名">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="step-block">
+      <div class="step-head">
+        <div class="step-num" id="sn2">2</div>
+        <div><div class="step-title" id="st2-title">依頼書バーコードスキャン</div><div class="step-sub" id="st2-sub">作業依頼書の品番バーコードを読み取り</div></div>
+      </div>
+      <div class="step-content locked" id="sc2">
+        <div class="scan-box waiting" id="sb-item">
+          <label id="lbl-scan-item">② 品番バーコードをスキャン</label>
+          <input type="text" class="scan-inp" id="inp-item" placeholder="品番バーコードをスキャン" autocomplete="off" spellcheck="false" disabled>
+        </div>
+        <div id="item-result" style="display:none;margin-top:10px;"></div>
+        <div id="due-sel-wrap" style="display:none;margin-top:10px;">
+          <div class="form-row">
+            <label class="inp-label" id="lbl-due-sel">得意先搬入日を選択（同一品番複数あり）<span class="req">*</span></label>
+            <select class="inp" id="sel-due" onchange="onDueSelected()"></select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 3 -->
+    <div class="step-block">
+      <div class="step-head">
+        <div class="step-num" id="sn3">3</div>
+        <div><div class="step-title" id="st3-title">異常対象を選択</div><div class="step-sub" id="st3-sub">部品の異常か包材の異常かを選んでください</div></div>
+      </div>
+      <div class="step-content locked" id="sc3">
+        <div class="type-grid">
+          <div class="type-card" id="tc-part" onclick="selectType('part')">
+            <span class="tc-icon">🔩</span>
+            <div class="tc-name" id="lbl-type-part">部品</div>
+            <div class="tc-sub" id="lbl-type-part-s">支給品の異常</div>
+          </div>
+          <div class="type-card" id="tc-pack" onclick="selectType('pack')">
+            <span class="tc-icon">📦</span>
+            <div class="tc-name" id="lbl-type-pack">包材</div>
+            <div class="tc-sub" id="lbl-type-pack-s">梱包材料の異常</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 4 -->
+    <div class="step-block">
+      <div class="step-head">
+        <div class="step-num" id="sn4">4</div>
+        <div><div class="step-title" id="st4-title">異常内容の入力</div><div class="step-sub" id="st4-sub">自動入力項目を確認し、数量・事象を入力してください</div></div>
+      </div>
+      <div class="step-content locked" id="sc4">
+
+        <!-- 共通 -->
+        <div class="form-row">
+          <label class="inp-label" id="lbl-report-date">報告日<span class="req">*</span></label>
+          <div class="date-row">
+            <input class="inp auto-filled" id="f-report-date" type="date">
+            <button class="btn bgh bsm" onclick="resetDate('f-report-date')" id="lbl-btn-today">今日</button>
+          </div>
+        </div>
+        <div class="form-row">
+          <label class="inp-label" id="lbl-supply-date">支給日（生産日）<span class="req">*</span></label>
+          <div class="date-row">
+            <input class="inp auto-filled" id="f-supply-date" type="date">
+            <button class="btn bgh bsm" onclick="resetDate('f-supply-date')">今日</button>
+          </div>
+        </div>
+
+        <!-- 部品フォーム -->
+        <div id="part-form" style="display:none;">
+          <div class="form-row"><label class="inp-label" id="lbl-f-code">部品番号</label><input class="inp auto-filled" id="f-code" type="text" readonly></div>
+          <div class="form-row"><label class="inp-label" id="lbl-f-name">部品名</label><input class="inp auto-filled" id="f-name" type="text" readonly></div>
+          <div class="form-row"><label class="inp-label" id="lbl-f-maker">支給メーカー</label><input class="inp auto-filled" id="f-maker" type="text" readonly></div>
+        </div>
+
+        <!-- 包材フォーム -->
+        <div id="pack-form" style="display:none;">
+          <div class="form-row">
+            <label class="inp-label" id="lbl-f-pack">包材を選択（複数可）<span class="req">*</span></label>
+            <div class="check-list" id="pack-check-list">
+              <div style="color:var(--text3);font-size:12px;" id="lbl-no-pack">品番スキャン後に一覧が表示されます</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sec-div"></div>
+
+        <!-- 事象 -->
+        <div class="form-row">
+          <label class="inp-label" id="lbl-f-phenom">事象<span class="req">*</span></label>
+          <div class="phenom-list" id="phenom-list">
+            <div class="phenom-chip" data-val="不足" onclick="selPhenom(this)">不足</div>
+            <div class="phenom-chip" data-val="破損" onclick="selPhenom(this)">破損</div>
+            <div class="phenom-chip" data-val="支給時から不良" onclick="selPhenom(this)">支給時から不良</div>
+            <div class="phenom-chip" data-val="other" onclick="selPhenom(this)" id="chip-other">その他</div>
+          </div>
+          <textarea class="inp" id="f-phenom-free" style="margin-top:7px;display:none;" placeholder="その他の内容を記入..."></textarea>
+        </div>
+
+        <!-- 搬入日 -->
+        <div class="form-row">
+          <label class="inp-label" id="lbl-f-due">得意先搬入日<span class="req">*</span></label>
+          <input class="inp auto-filled" id="f-due" type="date">
+        </div>
+
+        <!-- 発生数量 -->
+        <div class="form-row">
+          <label class="inp-label" id="lbl-f-qty">発生数量<span class="req">*</span></label>
+          <input class="inp" id="f-qty" type="number" min="1" step="1" placeholder="0">
+        </div>
+
+        <!-- 備考 -->
+        <div class="form-row">
+          <label class="inp-label" id="lbl-f-note">備考・詳細</label>
+          <textarea class="inp" id="f-note"></textarea>
+        </div>
+
+        <!-- ROKI報告日（administrator only） -->
+        <div class="form-row" id="fg-roki" style="display:none;">
+          <label class="inp-label" id="lbl-f-roki">ROKIへ報告日</label>
+          <input class="inp" id="f-roki" type="date">
+        </div>
+
+        <div style="margin-top:14px;">
+          <button class="btn bp blg bfull" id="btn-submit" onclick="submitReport()">
+            📤 <span id="lbl-submit">異常報告を送信</span>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div style="height:20px;"></div>
+  </div><!-- /sc-apply -->
+
+  <!-- ══ HISTORY ══ -->
+  <div id="sc-history" class="screen">
+    <div style="padding:10px 14px 4px;flex-shrink:0;display:flex;gap:8px;align-items:center;">
+      <select class="inp" id="hist-month" onchange="renderHistory()" style="flex:1;font-size:12px;"></select>
+      <button class="btn bgh bsm" onclick="loadHistory()">🔄</button>
+    </div>
+    <div class="filter-row">
+      <div class="fchip active" id="hf-all" onclick="setHistFilter('all',this)" id="lbl-hf-all">すべて</div>
+      <div class="fchip" id="hf-part" onclick="setHistFilter('part',this)">部品</div>
+      <div class="fchip" id="hf-pack" onclick="setHistFilter('pack',this)">包材</div>
+    </div>
+    <div id="hist-list" style="padding:10px 14px;flex:1;overflow-y:auto;"></div>
+  </div>
+
+  <!-- ══ EXPORT ══ -->
+  <div id="sc-export" class="screen">
+    <div style="padding:10px 14px 4px;flex-shrink:0;">
+      <div style="font-size:12px;color:var(--text3);margin-bottom:8px;" id="lbl-export-desc">履歴から選択して納入遅延報告書を自動作成します（administrator専用）</div>
+      <div style="display:flex;gap:6px;">
+        <button class="btn bgh bsm" onclick="exportSelAll()" id="lbl-sel-all">全選択</button>
+        <button class="btn bgh bsm" onclick="exportClear()" id="lbl-sel-none">選択解除</button>
+        <div style="flex:1;"></div>
+        <button class="btn bp bsm" id="btn-excel" onclick="makeExcel()">📊 <span id="lbl-make-excel">Excel作成</span></button>
+      </div>
+    </div>
+    <div id="export-list" style="padding:6px 14px 14px;flex:1;overflow-y:auto;"></div>
+  </div>
+
+</div><!-- /screens -->
+
+<!-- ════════════ MODALS ════════════ -->
+<!-- Due date picker modal (when multiple work orders) -->
+<div class="modal-overlay" id="mo-due">
+  <div class="modal-box">
+    <div class="modal-title" id="lbl-mo-due-title">納入日を選択</div>
+    <div class="check-list" id="mo-due-list"></div>
+    <div class="modal-footer">
+      <button class="btn bgh" onclick="closeModal('mo-due')">キャンセル</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════ 編集モーダル（administrator のみ） ════════════ -->
+<div class="modal-overlay" id="mo-edit">
+  <div class="modal-box">
+    <div class="modal-title">✏ 異常報告 編集</div>
+    <div class="form-row">
+      <label class="inp-label">報告日<span class="req">*</span></label>
+      <input class="inp" id="ed-report-date" type="date">
+    </div>
+    <div class="form-row">
+      <label class="inp-label">支給日（生産日）</label>
+      <input class="inp" id="ed-supply-date" type="date">
+    </div>
+    <div class="form-row">
+      <label class="inp-label">部品番号</label>
+      <input class="inp" id="ed-item-code" type="text">
+    </div>
+    <div class="form-row">
+      <label class="inp-label">部品名</label>
+      <input class="inp" id="ed-item-name" type="text">
+    </div>
+    <div class="form-row">
+      <label class="inp-label">支給メーカー</label>
+      <input class="inp" id="ed-maker-name" type="text">
+    </div>
+    <div class="form-row">
+      <label class="inp-label">報告者</label>
+      <input class="inp" id="ed-reporter" type="text">
+    </div>
+    <div class="form-row">
+      <label class="inp-label">事象<span class="req">*</span></label>
+      <input class="inp" id="ed-phenomenon" type="text">
+    </div>
+    <div class="form-row">
+      <label class="inp-label">得意先搬入日</label>
+      <input class="inp" id="ed-delivery-date" type="date">
+    </div>
+    <div class="form-row">
+      <label class="inp-label">発生数量<span class="req">*</span></label>
+      <input class="inp" id="ed-defect-qty" type="number" min="1" step="1">
+    </div>
+    <div class="form-row">
+      <label class="inp-label">備考・詳細</label>
+      <textarea class="inp" id="ed-note"></textarea>
+    </div>
+    <div class="form-row">
+      <label class="inp-label">ROKIへ報告日</label>
+      <input class="inp" id="ed-roki-date" type="date">
+    </div>
+    <div class="modal-footer">
+      <button class="btn bgh" style="flex:1;" onclick="closeModal('mo-edit')">キャンセル</button>
+      <button class="btn bp" style="flex:1;" onclick="saveEdit()">💾 保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ 削除確認モーダル（administrator のみ） ════════════ -->
+<div class="modal-overlay" id="mo-delete">
+  <div class="modal-box">
+    <div class="modal-title">🗑 削除確認</div>
+    <p style="font-size:var(--fs-sm);color:var(--text2);margin-bottom:16px;">
+      この異常報告を削除します。<br>
+      <span style="color:var(--red2);font-weight:700;">この操作は元に戻せません。</span>
+    </p>
+    <div id="del-preview" style="background:var(--surface2);border-radius:var(--rad);padding:12px;font-size:var(--fs-xxs);color:var(--text3);margin-bottom:4px;"></div>
+    <div class="modal-footer">
+      <button class="btn bgh" style="flex:1;" onclick="closeModal('mo-delete')">キャンセル</button>
+      <button class="btn bd" style="flex:1;" onclick="execDelete()">🗑 削除実行</button>
+    </div>
+  </div>
+</div>
+<!-- Toast -->
+<div id="toast-wrap"></div>
+
+<!-- ════════════ LOADING OVERLAY ════════════ -->
+<!-- マスタ取得完了まで全UI封鎖 -->
+<div id="loading-overlay" style="
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,.60);z-index:9100;
+  align-items:center;justify-content:center;flex-direction:column;gap:16px;">
+  <div style="
+    background:var(--surface);border:1px solid var(--border);
+    border-radius:var(--rad-lg);padding:28px 36px;text-align:center;
+    box-shadow:var(--shadow-md);min-width:220px;">
+    <div style="font-size:32px;margin-bottom:10px;">⏳</div>
+    <div style="font-size:var(--fs-lg);font-weight:800;color:var(--text);margin-bottom:6px;" id="overlay-msg">マスタ取得中...</div>
+    <div style="font-size:var(--fs-xxs);color:var(--text3);">しばらくお待ちください</div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     SCRIPT
+════════════════════════════════════════ -->
+<script>
+// ── CONFIG ────────────────────────────────
+var GAS_URL = 'https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec';
+
+// ── STATE ────────────────────────────────
+var DB = { workOrders:[], masterItems:[], employees:[], accounts:[], anomalies:[] };
+var SESSION = { workerId:'', workerName:'', role:'operator', lang:'JPN' };
+var FORM = {
+  step:1, workerId:'', workerName:'',
+  itemCode:'', itemName:'', makerName:'', workOrderNo:'', orderQty:0, dueDate:'',
+  anomalyType:'', selectedPacks:[], phenomenon:'', _masterItem:null, _dueCandidates:[]
+};
+var histFilter = 'all';
+var exportSel = {};
+
+// ── TRANSLATIONS ──────────────────────────
+var T = {
+  JPN:{
+    'st1-title':'作業者QRスキャン','st1-sub':'自分のQRコードを読み取ってください',
+    'st2-title':'依頼書バーコードスキャン','st2-sub':'作業依頼書の品番バーコードを読み取り',
+    'st3-title':'異常対象を選択','st3-sub':'部品の異常か包材の異常かを選んでください',
+    'st4-title':'異常内容の入力','st4-sub':'自動入力項目を確認し、数量・事象を入力してください',
+    'lbl-wid':'作業者ID','lbl-wname':'氏名','lbl-wmanual':'氏名（手入力）',
+    'lbl-due-sel':'得意先搬入日を選択（同一品番複数あり）',
+    'lbl-type-part':'部品','lbl-type-part-s':'支給品の異常',
+    'lbl-type-pack':'包材','lbl-type-pack-s':'梱包材料の異常',
+    'lbl-report-date':'報告日','lbl-supply-date':'支給日（生産日）',
+    'lbl-f-code':'部品番号','lbl-f-name':'部品名','lbl-f-maker':'支給メーカー',
+    'lbl-f-pack':'包材を選択（複数可）','lbl-no-pack':'品番スキャン後に一覧が表示されます',
+    'lbl-f-phenom':'事象','lbl-f-due':'得意先搬入日','lbl-f-qty':'発生数量','lbl-f-note':'備考・詳細',
+    'lbl-f-roki':'ROKIへ報告日','lbl-submit':'異常報告を送信',
+    'tn-apply':'申請','tn-hist':'履歴','tn-export':'Excel出力',
+    'lbl-hf-all':'すべて','hf-part':'部品','hf-pack':'包材',
+    'lbl-export-desc':'履歴から選択して納入遅延報告書を自動作成します（administrator専用）',
+    'lbl-sel-all':'全選択','lbl-sel-none':'選択解除','lbl-make-excel':'Excel作成',
+    'lbl-btn-today':'今日','lbl-mo-due-title':'納入日を選択',
+    'lbl-scan-worker':'① 作業者QRをスキャン','lbl-scan-item':'② 品番バーコードをスキャン',
+    'phenom-0':'不足','phenom-1':'破損','phenom-2':'支給時から不良','phenom-3':'その他',
+    'no-worker':'作業者を確認してください','no-item':'品番を確認してください',
+    'no-type':'部品か包材を選択してください','no-phenom':'事象を選択してください',
+    'no-qty':'発生数量を入力してください','no-pack':'包材を選択してください',
+    'sent':'✓ 異常報告を送信しました','send-err':'送信に失敗しました。再試行してください',
+    'loading':'マスタを読み込み中...','excel-building':'Excel作成中...',
+    'no-sel':'レコードを選択してください','excel-ok':'✓ Excel出力完了',
+    'not-found':'品番が見つかりません（マスタ未登録）',
+    'hist-empty':'報告データがありません',
+    'export-empty':'データがありません',
+    'type-part':'部品','type-pack':'包材',
+  },
+  POR:{
+    'st1-title':'Escanear QR do Operador','st1-sub':'Leia seu código QR pessoal',
+    'st2-title':'Escanear Código de Barras','st2-sub':'Leia o código de barras do pedido de trabalho',
+    'st3-title':'Selecionar Objeto','st3-sub':'Peça ou material de embalagem?',
+    'st4-title':'Inserir Detalhes','st4-sub':'Confirme os campos automáticos e insira quantidade/evento',
+    'lbl-wid':'ID Operador','lbl-wname':'Nome','lbl-wmanual':'Nome (manual)',
+    'lbl-due-sel':'Selecionar data de entrega (múltiplos pedidos)',
+    'lbl-type-part':'Peça','lbl-type-part-s':'Anomalia na peça',
+    'lbl-type-pack':'Embalagem','lbl-type-pack-s':'Anomalia no material',
+    'lbl-report-date':'Data do Relatório','lbl-supply-date':'Data de Fornecimento',
+    'lbl-f-code':'Nº Peça','lbl-f-name':'Nome da Peça','lbl-f-maker':'Fabricante',
+    'lbl-f-pack':'Selecionar embalagem (múltipla)','lbl-no-pack':'Lista exibida após escanear',
+    'lbl-f-phenom':'Evento','lbl-f-due':'Data de Entrega','lbl-f-qty':'Quantidade','lbl-f-note':'Observações',
+    'lbl-f-roki':'Data de Relatório ROKI','lbl-submit':'Enviar Relatório',
+    'tn-apply':'Relatar','tn-hist':'Histórico','tn-export':'Exportar',
+    'lbl-hf-all':'Todos','hf-part':'Peças','hf-pack':'Embalagem',
+    'lbl-export-desc':'Selecione para criar relatório de atraso (somente administrator)',
+    'lbl-sel-all':'Todos','lbl-sel-none':'Limpar','lbl-make-excel':'Criar Excel',
+    'lbl-btn-today':'Hoje','lbl-mo-due-title':'Selecionar data',
+    'lbl-scan-worker':'① Escanear QR do Operador','lbl-scan-item':'② Escanear código de barras',
+    'phenom-0':'Falta','phenom-1':'Avaria','phenom-2':'Defeito no fornecimento','phenom-3':'Outro',
+    'no-worker':'Confirme o operador','no-item':'Confirme o número da peça',
+    'no-type':'Selecione peça ou embalagem','no-phenom':'Selecione o evento',
+    'no-qty':'Insira a quantidade','no-pack':'Selecione a embalagem',
+    'sent':'✓ Relatório enviado','send-err':'Falha no envio. Tente novamente.',
+    'loading':'Carregando dados...','excel-building':'Criando Excel...',
+    'no-sel':'Selecione registros','excel-ok':'✓ Excel criado',
+    'not-found':'Peça não encontrada no cadastro',
+    'hist-empty':'Sem dados','export-empty':'Sem dados',
+    'type-part':'Peça','type-pack':'Embalagem',
+  },
+  FIL:{
+    'st1-title':'I-scan ang QR ng Manggagawa','st1-sub':'I-scan ang iyong QR code',
+    'st2-title':'I-scan ang Barcode ng Work Order','st2-sub':'I-scan ang barcode ng parte sa work order',
+    'st3-title':'Piliin ang Uri ng Anomalya','st3-sub':'Parte o packaging?',
+    'st4-title':'Ilagay ang Detalye','st4-sub':'Suriin ang awtomatikong field, ilagay ang dami/pangyayari',
+    'lbl-wid':'ID ng Manggagawa','lbl-wname':'Pangalan','lbl-wmanual':'Pangalan (mano-mano)',
+    'lbl-due-sel':'Piliin ang petsa ng paghahatid',
+    'lbl-type-part':'Parte','lbl-type-part-s':'Anomalya sa parte',
+    'lbl-type-pack':'Packaging','lbl-type-pack-s':'Anomalya sa materyales',
+    'lbl-report-date':'Petsa ng Ulat','lbl-supply-date':'Petsa ng Suplay',
+    'lbl-f-code':'Numero ng Parte','lbl-f-name':'Pangalan ng Parte','lbl-f-maker':'Tagagawa',
+    'lbl-f-pack':'Piliin ang packaging (marami)','lbl-no-pack':'Lalabas pagkatapos i-scan',
+    'lbl-f-phenom':'Pangyayari','lbl-f-due':'Petsa ng Paghahatid','lbl-f-qty':'Dami','lbl-f-note':'Mga Tala',
+    'lbl-f-roki':'Petsa ng Ulat sa ROKI','lbl-submit':'Ipadala ang Ulat',
+    'tn-apply':'Iulat','tn-hist':'Kasaysayan','tn-export':'I-export',
+    'lbl-hf-all':'Lahat','hf-part':'Parte','hf-pack':'Packaging',
+    'lbl-export-desc':'Pumili para gumawa ng ulat ng pagkaantala (administrator lamang)',
+    'lbl-sel-all':'Lahat','lbl-sel-none':'I-clear','lbl-make-excel':'Gumawa ng Excel',
+    'lbl-btn-today':'Ngayon','lbl-mo-due-title':'Piliin ang petsa',
+    'lbl-scan-worker':'① I-scan ang QR','lbl-scan-item':'② I-scan ang barcode',
+    'phenom-0':'Kulang','phenom-1':'Sira','phenom-2':'Sira mula sa paghahatid','phenom-3':'Iba pa',
+    'no-worker':'Kumpirmahin ang manggagawa','no-item':'Kumpirmahin ang numero ng parte',
+    'no-type':'Pumili ng parte o packaging','no-phenom':'Pumili ng pangyayari',
+    'no-qty':'Ilagay ang dami','no-pack':'Pumili ng packaging',
+    'sent':'✓ Naipadala na ang ulat','send-err':'Nabigo. Subukan muli.',
+    'loading':'Naglo-load...','excel-building':'Gumagawa ng Excel...',
+    'no-sel':'Pumili ng mga rekord','excel-ok':'✓ Natapos ang Excel',
+    'not-found':'Hindi natagpuan ang parte',
+    'hist-empty':'Walang data','export-empty':'Walang data',
+    'type-part':'Parte','type-pack':'Packaging',
+  },
+  VIE:{
+    'st1-title':'Quét mã QR Công nhân','st1-sub':'Quét mã QR cá nhân của bạn',
+    'st2-title':'Quét Mã vạch Phiếu yêu cầu','st2-sub':'Quét mã vạch số linh kiện trên phiếu yêu cầu',
+    'st3-title':'Chọn Đối tượng','st3-sub':'Linh kiện hay vật liệu đóng gói?',
+    'st4-title':'Nhập Chi tiết','st4-sub':'Kiểm tra các trường tự động, nhập số lượng/sự cố',
+    'lbl-wid':'ID Công nhân','lbl-wname':'Tên','lbl-wmanual':'Tên (nhập tay)',
+    'lbl-due-sel':'Chọn ngày giao hàng (có nhiều phiếu)',
+    'lbl-type-part':'Linh kiện','lbl-type-part-s':'Bất thường linh kiện',
+    'lbl-type-pack':'Đóng gói','lbl-type-pack-s':'Bất thường vật liệu đóng gói',
+    'lbl-report-date':'Ngày Báo cáo','lbl-supply-date':'Ngày Cung cấp',
+    'lbl-f-code':'Số Linh kiện','lbl-f-name':'Tên Linh kiện','lbl-f-maker':'Nhà cung cấp',
+    'lbl-f-pack':'Chọn vật liệu (nhiều)','lbl-no-pack':'Danh sách hiển thị sau khi quét',
+    'lbl-f-phenom':'Sự cố','lbl-f-due':'Ngày Giao hàng','lbl-f-qty':'Số lượng','lbl-f-note':'Ghi chú',
+    'lbl-f-roki':'Ngày Báo cáo ROKI','lbl-submit':'Gửi Báo cáo',
+    'tn-apply':'Báo cáo','tn-hist':'Lịch sử','tn-export':'Xuất Excel',
+    'lbl-hf-all':'Tất cả','hf-part':'Linh kiện','hf-pack':'Đóng gói',
+    'lbl-export-desc':'Chọn bản ghi để tạo báo cáo chậm giao hàng (chỉ administrator)',
+    'lbl-sel-all':'Chọn tất','lbl-sel-none':'Bỏ chọn','lbl-make-excel':'Tạo Excel',
+    'lbl-btn-today':'Hôm nay','lbl-mo-due-title':'Chọn ngày',
+    'lbl-scan-worker':'① Quét QR công nhân','lbl-scan-item':'② Quét mã vạch phiếu',
+    'phenom-0':'Thiếu','phenom-1':'Hư hỏng','phenom-2':'Lỗi từ khi cung cấp','phenom-3':'Khác',
+    'no-worker':'Xác nhận công nhân','no-item':'Xác nhận số linh kiện',
+    'no-type':'Chọn linh kiện hoặc đóng gói','no-phenom':'Chọn sự cố',
+    'no-qty':'Nhập số lượng','no-pack':'Chọn vật liệu đóng gói',
+    'sent':'✓ Đã gửi báo cáo','send-err':'Gửi thất bại. Vui lòng thử lại.',
+    'loading':'Đang tải...','excel-building':'Đang tạo Excel...',
+    'no-sel':'Chọn bản ghi','excel-ok':'✓ Xuất Excel hoàn thành',
+    'not-found':'Không tìm thấy linh kiện',
+    'hist-empty':'Không có dữ liệu','export-empty':'Không có dữ liệu',
+    'type-part':'Linh kiện','type-pack':'Đóng gói',
+  }
+};
+function t(k){ return (T[SESSION.lang]||T.JPN)[k]||k; }
+
+function setLang(lang){
+  SESSION.lang=lang;
+  document.querySelectorAll('.lang-btn').forEach(function(b){ b.classList.toggle('active',b.textContent===lang); });
+  applyTranslations();
+}
+
+var TX_IDS = ['st1-title','st1-sub','st2-title','st2-sub','st3-title','st3-sub','st4-title','st4-sub',
+  'lbl-wid','lbl-wname','lbl-wmanual','lbl-due-sel','lbl-type-part','lbl-type-part-s','lbl-type-pack','lbl-type-pack-s',
+  'lbl-report-date','lbl-supply-date','lbl-f-code','lbl-f-name','lbl-f-maker','lbl-f-pack','lbl-no-pack',
+  'lbl-f-phenom','lbl-f-due','lbl-f-qty','lbl-f-note','lbl-f-roki','lbl-submit',
+  'tn-apply','tn-hist','tn-export','lbl-hf-all','lbl-export-desc','lbl-sel-all','lbl-sel-none','lbl-make-excel',
+  'lbl-btn-today','lbl-mo-due-title','lbl-scan-worker','lbl-scan-item'];
+
+function applyTranslations(){
+  TX_IDS.forEach(function(k){ var el=document.getElementById(k); if(el) el.textContent=t(k); });
+  // phenom chips
+  var chips=document.querySelectorAll('#phenom-list .phenom-chip');
+  chips.forEach(function(c,i){ c.textContent=t('phenom-'+i); });
+  // filter chips
+  var hfp=document.getElementById('hf-part'); if(hfp) hfp.textContent=t('hf-part');
+  var hfk=document.getElementById('hf-pack'); if(hfk) hfk.textContent=t('hf-pack');
+}
+
+// ── UTILS ────────────────────────────────
+function pad(n){ return String(n).padStart(2,'0'); }
+function today(){ var d=new Date(); return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+function genId(){ return 'ANM-'+Date.now().toString(36).toUpperCase()+'-'+Math.random().toString(36).slice(2,6).toUpperCase(); }
+function resetDate(id){ document.getElementById(id).value=today(); }
+function normCode(s){ return String(s||'').replace(/[\s\-]/g,'').toUpperCase(); }
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function showToast(msg,type,dur){
+  var wrap=document.getElementById('toast-wrap');
+  var el=document.createElement('div');
+  el.className='toast '+(type||'info');
+  el.textContent=msg;
+  wrap.appendChild(el);
+  requestAnimationFrame(function(){ requestAnimationFrame(function(){ el.classList.add('show'); }); });
+  setTimeout(function(){ el.classList.remove('show'); setTimeout(function(){ el.remove(); },300); }, dur||2600);
+}
+
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+
+// ── GAS ──────────────────────────────────
+function callGasGet(params){
+  var qs=Object.keys(params).map(function(k){ return encodeURIComponent(k)+'='+encodeURIComponent(typeof params[k]==='object'?JSON.stringify(params[k]):params[k]); }).join('&');
+  return fetch(GAS_URL+'?'+qs).then(function(r){ return r.json(); });
+}
+function callGasPost(params){
+  return fetch(GAS_URL,{method:'POST',body:JSON.stringify(params)}).then(function(r){ return r.json(); });
+}
+
+// ── UI封鎖 / 解除 ────────────────────────
+function setUiLocked(locked){
+  var ov=document.getElementById('loading-overlay');
+  if(ov) ov.style.display=locked?'flex':'none';
+  // スキャン入力も無効化（封鎖中は誤スキャンを防ぐ）
+  var wi=document.getElementById('inp-worker');
+  if(wi) wi.disabled=locked;
+}
+
+function loadMaster(){
+  setUiLocked(true);
+  document.getElementById('lang-bar-sync').textContent=t('loading');
+  callGasGet({action:'getMaster',device:'anomaly_app'}).then(function(r){
+    if(r.workOrders)  DB.workOrders=r.workOrders;
+    if(r.masterItems) DB.masterItems=r.masterItems;
+    if(r.employees)   DB.employees=r.employees;
+    if(r.accounts)    DB.accounts=r.accounts;
+    document.getElementById('lang-bar-sync').textContent='✓ 同期済';
+    applyRole();
+  }).catch(function(){
+    document.getElementById('lang-bar-sync').textContent='⚠ オフライン';
+    showToast('マスタ取得に失敗しました（オフライン）','warning',4000);
+  }).then(function(){
+    // .finally() 非対応環境向けに .then() チェーンで解除
+    setUiLocked(false);
+    var wi=document.getElementById('inp-worker');
+    if(wi){ wi.disabled=false; wi.focus(); }
+  });
+}
+
+function applyRole(){
+  var isAdmin   = SESSION.role==='administrator';
+  var canExport = isAdmin || SESSION.role==='kanri';
+  // Excel出力タブ：kanri / administrator のみ表示
+  document.getElementById('tab-export').style.display = canExport ? '' : 'none';
+  // ROKI報告日フィールド：administrator のみ
+  document.getElementById('fg-roki').style.display   = isAdmin ? 'block' : 'none';
+}
+
+function loadHistory(){
+  callGasGet({action:'getAnomalyHistory',device:'anomaly_app'}).then(function(r){
+    if(r.anomalies) DB.anomalies=r.anomalies;
+    renderHistory(); renderExportList();
+  }).catch(function(){});
+}
+
+// ── STEP 1: WORKER ────────────────────────
+document.getElementById('inp-worker').addEventListener('change',function(){
+  onWorkerScan(this.value.trim());
+});
+document.getElementById('inp-worker').addEventListener('keydown',function(e){
+  if(e.key==='Enter'){ onWorkerScan(this.value.trim()); e.preventDefault(); }
+});
+
+function onWorkerScan(v){
+  if(!v) return;
+  FORM.workerId=v;
+
+  // ── 従業員マスタから逆引き ──
+  // id完全一致（EMP-00 等）または name一致（手打ち想定）
+  var emp=(DB.employees||[]).find(function(e){
+    return String(e.id||'').trim()===v || String(e.name||'').trim()===v;
+  });
+
+  if(emp && String(emp.active).toLowerCase()==='false'){
+    // active=false：無効アカウント → 拒否してリセット
+    showToast('このIDは無効です（active=false）','error');
+    document.getElementById('inp-worker').value='';
+    return;
+  }
+
+  if(emp && emp.name && String(emp.name).trim()!==''){
+    // ── 登録済み：名前を自動表示 ──
+    FORM.workerName=String(emp.name).trim();
+    document.getElementById('wi-id').textContent=emp.id;
+    document.getElementById('wi-name').textContent=FORM.workerName;
+    var catEl=document.getElementById('wi-category');
+    if(catEl) catEl.textContent=emp.category||'—';
+    document.getElementById('worker-info').style.display='block';
+    document.getElementById('worker-manual-wrap').style.display='none';
+  } else {
+    // ── 未登録番号（nameが空）または従業員マスタにない値 ──
+    // QRジグは有効だが名前未記入 → 手入力フォールバック
+    FORM.workerName='';
+    document.getElementById('worker-info').style.display='none';
+    document.getElementById('worker-manual-wrap').style.display='block';
+    document.getElementById('inp-worker-manual').focus();
+    if(emp){
+      // IDは存在するがname未記入の場合はIDをヒント表示
+      showToast('ID '+v+' は名前未登録です。手入力してください。','info',3500);
+    }
+  }
+
+  markScanBox('sb-worker','lbl-scan-worker',true);
+  advanceStep(2);
+}
+
+document.getElementById('inp-worker-manual').addEventListener('input',function(){
+  FORM.workerName=this.value.trim();
+  if(FORM.workerName) advanceStep(2);
+});
+
+// ── STEP 2: ITEM ──────────────────────────
+document.getElementById('inp-item').addEventListener('change',function(){
+  onItemScan(this.value.trim());
+});
+document.getElementById('inp-item').addEventListener('keydown',function(e){
+  if(e.key==='Enter'){ onItemScan(this.value.trim()); e.preventDefault(); }
+});
+
+function onItemScan(raw){
+  if(!raw) return;
+  var v=normCode(raw);
+  var matches=(DB.workOrders||[]).filter(function(wo){ return normCode(wo.SupplyItemCode)===v||normCode(wo.ItemCode)===v; });
+  if(matches.length===0){
+    var mi=(DB.masterItems||[]).find(function(m){ return normCode(m.itemCode)===v||normCode(m.custPartNo)===v; });
+    if(mi){ fillFromMaster(mi,raw,null); markScanBox('sb-item','lbl-scan-item',true); showItemResult(); advanceStep(3); }
+    else { showToast(t('not-found')+': '+raw,'warning'); }
+    return;
+  }
+  if(matches.length===1){ fillFromWO(matches[0]); }
+  else { showDueModal(matches); return; }
+  markScanBox('sb-item','lbl-scan-item',true); showItemResult(); advanceStep(3);
+}
+
+function showDueModal(candidates){
+  FORM._dueCandidates=candidates;
+  var list=document.getElementById('mo-due-list');
+  list.innerHTML=candidates.map(function(wo,i){
+    return '<div class="check-item" onclick="pickDue('+i+')">'
+      +'<div><div class="info-value">納入日: <b>'+esc(wo.DueDate)+'</b></div>'
+      +'<div style="font-size:11px;color:var(--text3);">数量:'+wo.OrderQty+' / WO:'+esc(wo.WorkOrderNo)+'</div></div></div>';
+  }).join('');
+  openModal('mo-due');
+}
+function pickDue(i){ closeModal('mo-due'); fillFromWO(FORM._dueCandidates[i]); markScanBox('sb-item','lbl-scan-item',true); showItemResult(); advanceStep(3); }
+function onDueSelected(){ var v=document.getElementById('sel-due').value; var wo=FORM._dueCandidates.find(function(w){ return w.WorkOrderNo===v; }); if(wo){ fillFromWO(wo); markScanBox('sb-item','lbl-scan-item',true); showItemResult(); advanceStep(3); } }
+
+function fillFromWO(wo){
+  FORM.workOrderNo=wo.WorkOrderNo; FORM.itemCode=wo.SupplyItemCode||wo.ItemCode||'';
+  FORM.itemName=wo.ItemName||''; FORM.makerName=wo.Maker||'';
+  FORM.orderQty=wo.OrderQty||0; FORM.dueDate=wo.DueDate||'';
+  var mi=(DB.masterItems||[]).find(function(m){ return normCode(m.itemCode)===normCode(FORM.itemCode)||normCode(m.custPartNo)===normCode(FORM.itemCode); });
+  if(mi) fillFromMaster(mi,FORM.itemCode,wo);
+}
+function fillFromMaster(mi,code,wo){
+  FORM.itemCode=mi.itemCode||code; FORM.itemName=mi.itemName||mi.packingItemName||FORM.itemName||'';
+  FORM.makerName=mi.makerName||mi.makerCode||FORM.makerName||'';
+  if(wo){ FORM.orderQty=wo.OrderQty||0; FORM.dueDate=wo.DueDate||''; }
+  FORM._masterItem=mi;
+}
+function showItemResult(){
+  var h='<div class="info-grid">'
+    +'<div class="info-item span2"><div class="info-label">'+t('lbl-f-code')+'</div><div class="info-value accent">'+esc(FORM.itemCode)+'</div></div>'
+    +'<div class="info-item span2"><div class="info-label">'+t('lbl-f-name')+'</div><div class="info-value">'+esc(FORM.itemName)+'</div></div>'
+    +'<div class="info-item span2"><div class="info-label">'+t('lbl-f-maker')+'</div><div class="info-value">'+esc(FORM.makerName)+'</div></div>'
+    +'</div>';
+  var el=document.getElementById('item-result'); el.innerHTML=h; el.style.display='block';
+}
+
+function markScanBox(boxId,labelId,filled){
+  var box=document.getElementById(boxId);
+  if(!box) return;
+  box.classList.toggle('waiting',!filled); box.classList.toggle('filled',filled);
+  var inp=box.querySelector('.scan-inp'); if(inp){ inp.classList.toggle('filled',filled); }
+}
+
+// ── STEP 3: TYPE ──────────────────────────
+function selectType(tp){
+  FORM.anomalyType=tp;
+  document.getElementById('tc-part').classList.toggle('sel',tp==='part');
+  document.getElementById('tc-pack').classList.toggle('sel',tp==='pack');
+  buildStep4(tp);
+  advanceStep(4);
+}
+
+function getPackMaterials(mi){
+  if(!mi) return [];
+  var mats=[]; var seen={};
+  var groups=[{p:'innerMat',n:8,lbl:'内装'},{p:'midSheet1Mat',n:5,lbl:'中仕切1'},{p:'midSheet2Mat',n:5,lbl:'中仕切2'},{p:'outerMat',n:8,lbl:'外装'}];
+  groups.forEach(function(g){ for(var i=1;i<=g.n;i++){ var v=mi[g.p+i]; if(v&&v.trim()&&!seen[v.trim()]){ seen[v.trim()]=1; mats.push({code:v.trim(),name:'',label:g.lbl+i}); }} });
+  for(var s=1;s<=14;s++){ var sc=mi['supply'+s+'Code']; if(sc&&sc.trim()&&!seen[sc.trim()]){ seen[sc.trim()]=1; mats.push({code:sc.trim(),name:mi['supply'+s+'Name']||'',label:'支給品'+s}); } }
+  return mats;
+}
+
+function buildStep4(tp){
+  document.getElementById('part-form').style.display=tp==='part'?'block':'none';
+  document.getElementById('pack-form').style.display=tp==='pack'?'block':'none';
+  if(tp==='part'){
+    setAuto('f-code',FORM.itemCode); setAuto('f-name',FORM.itemName); setAuto('f-maker',FORM.makerName);
+  } else {
+    var mats=getPackMaterials(FORM._masterItem);
+    var el=document.getElementById('pack-check-list');
+    if(!mats.length){ el.innerHTML='<div style="color:var(--text3);font-size:12px;">'+t('lbl-no-pack')+'</div>'; }
+    else { el.innerHTML=mats.map(function(m){ return '<label class="check-item" onclick="tglPack(this)"><input type="checkbox" value="'+esc(m.code)+'"><div><div class="check-item-code">'+esc(m.code)+'</div>'+(m.name?'<div class="check-item-name">'+esc(m.name)+'</div>':'')+'</div></label>'; }).join(''); }
+  }
+  document.getElementById('f-report-date').value=today();
+  document.getElementById('f-supply-date').value=today();
+  if(FORM.dueDate) document.getElementById('f-due').value=FORM.dueDate;
+  if(FORM.orderQty) document.getElementById('f-qty').value=FORM.orderQty;
+}
+
+function setAuto(id,val){ var el=document.getElementById(id); if(!el) return; el.value=val||''; el.classList.toggle('auto-filled',!!val); }
+
+function tglPack(label){ var cb=label.querySelector('input'); cb.checked=!cb.checked; label.classList.toggle('chk',cb.checked); }
+
+// ── STEP 4: PHENOM ───────────────────────
+function selPhenom(el){
+  document.querySelectorAll('.phenom-chip').forEach(function(c){ c.classList.remove('sel'); });
+  el.classList.add('sel');
+  FORM.phenomenon=el.dataset.val;
+  var isOther=el.dataset.val==='other';
+  document.getElementById('f-phenom-free').style.display=isOther?'block':'none';
+  if(!isOther) document.getElementById('f-phenom-free').value='';
+}
+
+// ── STEP LOGIC ───────────────────────────
+function advanceStep(to){
+  FORM.step=to;
+  for(var i=1;i<=4;i++){
+    var sn=document.getElementById('sn'+i); var sc=document.getElementById('sc'+i);
+    if(!sn||!sc) continue;
+    sn.className='step-num'+(i<to?' done':'');
+    sc.classList.toggle('locked',i>to);
+    sc.classList.toggle('done-border',i<to);
+  }
+  document.getElementById('prog-fill').style.width=Math.min(100,(to-1)/3*100)+'%';
+  if(to===2){ document.getElementById('inp-item').disabled=false; document.getElementById('sb-item').classList.remove('waiting'); document.getElementById('sb-item').querySelector('label').style.color=''; setTimeout(function(){ document.getElementById('inp-item').focus(); },200); }
+  var sc=document.getElementById('sc'+to);
+  if(sc) setTimeout(function(){ sc.scrollIntoView({behavior:'smooth',block:'nearest'}); },150);
+}
+
+// ── SUBMIT ───────────────────────────────
+function submitReport(){
+  var wn=FORM.workerName||document.getElementById('inp-worker-manual').value.trim();
+  if(!FORM.workerId&&!wn){ showToast(t('no-worker'),'warning'); return; }
+  if(!FORM.itemCode){ showToast(t('no-item'),'warning'); return; }
+  if(!FORM.anomalyType){ showToast(t('no-type'),'warning'); return; }
+  var phenom=FORM.phenomenon;
+  if(!phenom){ showToast(t('no-phenom'),'warning'); return; }
+  var phenomFree=document.getElementById('f-phenom-free').value.trim();
+  if(phenom==='other') phenom=phenomFree||t('phenom-3');
+  var qty=parseInt(document.getElementById('f-qty').value)||0;
+  if(qty<=0){ showToast(t('no-qty'),'warning'); return; }
+  if(FORM.anomalyType==='pack'){
+    FORM.selectedPacks=Array.from(document.querySelectorAll('#pack-check-list input:checked')).map(function(c){ return c.value; });
+    if(!FORM.selectedPacks.length){ showToast(t('no-pack'),'warning'); return; }
+  }
+  var record={
+    id:genId(), reportDate:document.getElementById('f-report-date').value,
+    supplyDate:document.getElementById('f-supply-date').value,
+    workerId:FORM.workerId, reporter:wn||FORM.workerName,
+    anomalyType:FORM.anomalyType,
+    itemCode:FORM.itemCode, itemName:FORM.itemName, makerName:FORM.makerName,
+    workOrderNo:FORM.workOrderNo, phenomenon:phenom,
+    deliveryDate:document.getElementById('f-due').value,
+    defectQty:qty, note:document.getElementById('f-note').value.trim(),
+    packingMarks:FORM.anomalyType==='pack'?FORM.selectedPacks.join(', '):'',
+    rokiDate:SESSION.role==='administrator'?document.getElementById('f-roki').value:'',
+    lang:SESSION.lang, createdAt:new Date().toISOString(), terminal:'anomaly_app',
+  };
+  var btn=document.getElementById('btn-submit'); btn.disabled=true;
+  callGasPost({action:'recordAnomaly',device:'anomaly_app',data:record})
+    .then(function(){ DB.anomalies.unshift(record); showToast(t('sent'),'success'); resetForm(); })
+    .catch(function(){ DB.anomalies.unshift(record); showToast(t('sent'),'success'); resetForm(); })
+    .finally(function(){ btn.disabled=false; });
+}
+
+function resetForm(){
+  FORM.step=1; FORM.workerId=''; FORM.workerName=''; FORM.itemCode=''; FORM.itemName='';
+  FORM.makerName=''; FORM.workOrderNo=''; FORM.orderQty=0; FORM.dueDate='';
+  FORM.anomalyType=''; FORM.selectedPacks=[]; FORM.phenomenon=''; FORM._masterItem=null;
+  document.getElementById('inp-worker').value='';
+  document.getElementById('inp-worker-manual').value='';
+  document.getElementById('worker-info').style.display='none';
+  document.getElementById('worker-manual-wrap').style.display='none';
+  var wcat=document.getElementById('wi-category'); if(wcat) wcat.textContent='—';
+  document.getElementById('wi-id').textContent='—';
+  document.getElementById('wi-name').textContent='—';
+  document.getElementById('inp-item').value='';
+  document.getElementById('inp-item').disabled=true;
+  document.getElementById('item-result').style.display='none';
+  document.getElementById('due-sel-wrap').style.display='none';
+  document.getElementById('tc-part').classList.remove('sel');
+  document.getElementById('tc-pack').classList.remove('sel');
+  document.querySelectorAll('.phenom-chip').forEach(function(c){ c.classList.remove('sel'); });
+  document.getElementById('f-phenom-free').style.display='none';
+  document.getElementById('f-phenom-free').value='';
+  document.getElementById('f-qty').value='';
+  document.getElementById('f-note').value='';
+  document.getElementById('f-roki').value='';
+  // reset scan boxes
+  markScanBox('sb-worker','lbl-scan-worker',false);
+  markScanBox('sb-item','lbl-scan-item',false);
+  document.getElementById('sb-worker').classList.remove('filled');
+  document.getElementById('sb-item').classList.add('waiting');
+  for(var i=1;i<=4;i++){
+    var sn=document.getElementById('sn'+i); var sc=document.getElementById('sc'+i);
+    if(sn) sn.className='step-num';
+    if(sc){ sc.classList.toggle('locked',i>1); sc.classList.remove('done-border'); }
+  }
+  document.getElementById('prog-fill').style.width='0%';
+  document.getElementById('sc-apply').scrollTo({top:0,behavior:'smooth'});
+}
+
+// ── HISTORY ──────────────────────────────
+function renderHistory(){
+  var m=document.getElementById('hist-month').value;
+  var list=DB.anomalies.filter(function(r){
+    var mOk=!m||(r.reportDate||'').startsWith(m);
+    var tOk=histFilter==='all'||r.anomalyType===histFilter;
+    return mOk&&tOk;
+  });
+  // Rebuild month selector
+  var months={}; DB.anomalies.forEach(function(r){ var mo=(r.reportDate||'').substring(0,7); if(mo) months[mo]=1; });
+  var mKeys=Object.keys(months).sort().reverse();
+  var sel=document.getElementById('hist-month'); var cur=sel.value;
+  sel.innerHTML='<option value="">— '+t('lbl-hf-all')+' —</option>';
+  mKeys.forEach(function(mo){ var o=document.createElement('option'); o.value=mo; o.textContent=mo; if(mo===cur) o.selected=true; sel.appendChild(o); });
+  var div=document.getElementById('hist-list');
+  if(!list.length){ div.innerHTML='<p style="color:var(--text3);font-size:12px;text-align:center;padding:30px 0;">'+t('hist-empty')+'</p>'; return; }
+  var isAdmin = SESSION.role==='administrator';
+  div.innerHTML=list.slice(0,200).map(function(r){
+    var editBtns = isAdmin
+      ? '<div style="display:flex;gap:6px;margin-top:10px;">'
+        +'<button class="btn bgh bsm" style="flex:1;" onclick="openEditModal(\''+r.id+'\');event.stopPropagation();">✏ 編集</button>'
+        +'<button class="btn bd bsm" style="flex:1;" onclick="confirmDelete(\''+r.id+'\');event.stopPropagation();">🗑 削除</button>'
+        +'</div>'
+      : '';
+    return '<div class="hist-card">'
+      +'<div class="hc-head"><div class="hc-partno">'+esc(r.itemCode)+'</div>'
+      +'<span class="badge '+(r.anomalyType==='part'?'badge-blue':'badge-green')+'">'+esc(r.anomalyType==='part'?t('type-part'):t('type-pack'))+'</span></div>'
+      +'<div class="hc-name">'+esc(r.itemName)+'</div>'
+      +'<div class="hc-meta">'
+      +'<span>📅 '+esc(r.reportDate||'')+'</span>'
+      +'<span>👤 '+esc(r.reporter||'')+'</span>'
+      +'<span>⚠ '+esc(r.phenomenon||'')+'</span>'
+      +'<span>×'+esc(String(r.defectQty||''))+'</span>'
+      +(r.rokiDate?'<span class="roki-tag">ROKI報告済</span>':'')
+      +'</div>'+editBtns+'</div>';
+  }).join('');
+}
+function setHistFilter(f,el){
+  histFilter=f;
+  document.querySelectorAll('.fchip').forEach(function(c){ c.classList.remove('active'); });
+  el.classList.add('active');
+  renderHistory();
+}
+
+
+// ── EDIT / DELETE (administrator のみ) ──────────────────────────
+var _editTarget = null; // 編集中レコードの参照
+
+function openEditModal(id){
+  if(SESSION.role!=='administrator'){ showToast('administratorのみ操作できます','error'); return; }
+  var r = (DB.anomalies||[]).find(function(x){ return x.id===id; });
+  if(!r){ showToast('レコードが見つかりません','error'); return; }
+  _editTarget = r;
+  document.getElementById('ed-report-date').value   = r.reportDate   || '';
+  document.getElementById('ed-supply-date').value   = r.supplyDate   || '';
+  document.getElementById('ed-item-code').value     = r.itemCode     || '';
+  document.getElementById('ed-item-name').value     = r.itemName     || '';
+  document.getElementById('ed-maker-name').value    = r.makerName    || '';
+  document.getElementById('ed-reporter').value      = r.reporter     || '';
+  document.getElementById('ed-phenomenon').value    = r.phenomenon   || '';
+  document.getElementById('ed-delivery-date').value = r.deliveryDate || '';
+  document.getElementById('ed-defect-qty').value    = r.defectQty    || '';
+  document.getElementById('ed-note').value          = r.note         || '';
+  document.getElementById('ed-roki-date').value     = r.rokiDate     || '';
+  openModal('mo-edit');
+}
+
+function saveEdit(){
+  if(!_editTarget){ closeModal('mo-edit'); return; }
+  var qty = parseInt(document.getElementById('ed-defect-qty').value)||0;
+  if(qty<=0){ showToast('発生数量を入力してください','warning'); return; }
+  var phenom = document.getElementById('ed-phenomenon').value.trim();
+  if(!phenom){ showToast('事象を入力してください','warning'); return; }
+  var updated = Object.assign({}, _editTarget, {
+    reportDate:   document.getElementById('ed-report-date').value,
+    supplyDate:   document.getElementById('ed-supply-date').value,
+    itemCode:     document.getElementById('ed-item-code').value.trim(),
+    itemName:     document.getElementById('ed-item-name').value.trim(),
+    makerName:    document.getElementById('ed-maker-name').value.trim(),
+    reporter:     document.getElementById('ed-reporter').value.trim(),
+    phenomenon:   phenom,
+    deliveryDate: document.getElementById('ed-delivery-date').value,
+    defectQty:    qty,
+    note:         document.getElementById('ed-note').value.trim(),
+    rokiDate:     document.getElementById('ed-roki-date').value,
+  });
+  var btn = document.querySelector('#mo-edit .btn.bp');
+  if(btn) btn.disabled=true;
+  callGasPost({action:'updateAnomaly', device:'anomaly_app', data:updated})
+    .then(function(r){
+      // ローカルDBも更新
+      var idx = DB.anomalies.findIndex(function(x){ return x.id===updated.id; });
+      if(idx>=0) DB.anomalies[idx] = updated;
+      showToast('✓ 更新しました','success');
+      closeModal('mo-edit');
+      renderHistory();
+      renderExportList();
+      _editTarget = null;
+    })
+    .catch(function(){
+      showToast('更新に失敗しました','error');
+    })
+    .then(function(){ if(btn) btn.disabled=false; });
+}
+
+var _deleteTargetId = null;
+
+function confirmDelete(id){
+  if(SESSION.role!=='administrator'){ showToast('administratorのみ操作できます','error'); return; }
+  var r = (DB.anomalies||[]).find(function(x){ return x.id===id; });
+  if(!r){ showToast('レコードが見つかりません','error'); return; }
+  _deleteTargetId = id;
+  var prev = document.getElementById('del-preview');
+  if(prev) prev.innerHTML =
+    '<b>'+esc(r.itemCode)+'</b> '+esc(r.itemName)+'<br>'
+    +'報告日: '+esc(r.reportDate||'—')+'　報告者: '+esc(r.reporter||'—')+'<br>'
+    +'事象: '+esc(r.phenomenon||'—')+'　数量: '+esc(String(r.defectQty||'—'));
+  openModal('mo-delete');
+}
+
+function execDelete(){
+  if(!_deleteTargetId){ closeModal('mo-delete'); return; }
+  var id = _deleteTargetId;
+  var btn = document.querySelector('#mo-delete .btn.bd');
+  if(btn) btn.disabled=true;
+  callGasPost({action:'deleteAnomaly', device:'anomaly_app', data:{id:id}})
+    .then(function(r){
+      DB.anomalies = DB.anomalies.filter(function(x){ return x.id!==id; });
+      showToast('✓ 削除しました','success');
+      closeModal('mo-delete');
+      renderHistory();
+      renderExportList();
+      _deleteTargetId = null;
+    })
+    .catch(function(){
+      showToast('削除に失敗しました','error');
+    })
+    .then(function(){ if(btn) btn.disabled=false; });
+}
+
+// ── EXPORT ───────────────────────────────
+function renderExportList(){
+  var list=DB.anomalies;
+  var div=document.getElementById('export-list');
+  if(!list.length){ div.innerHTML='<p style="color:var(--text3);font-size:12px;text-align:center;padding:30px 0;">'+t('export-empty')+'</p>'; return; }
+  div.innerHTML=list.slice(0,500).map(function(r){
+    var isSel=exportSel[r.id];
+    return '<div class="hist-card selectable'+(isSel?' sel-chk':'')+'" onclick="tglExport(\''+esc(r.id)+'\',this)">'
+      +'<div class="hc-head"><div class="hc-partno">'+esc(r.itemCode)+'</div>'
+      +'<span class="badge '+(r.anomalyType==='part'?'badge-blue':'badge-green')+'">'+esc(r.anomalyType==='part'?t('type-part'):t('type-pack'))+'</span></div>'
+      +'<div class="hc-name">'+esc(r.itemName)+'</div>'
+      +'<div class="hc-meta"><span>'+esc(r.reportDate||'')+'</span><span>'+esc(r.reporter||'')+'</span><span>'+esc(r.phenomenon||'')+'</span><span>×'+esc(String(r.defectQty||''))+'</span></div>'
+      +'</div>';
+  }).join('');
+}
+function tglExport(id,el){ exportSel[id]=!exportSel[id]; el.classList.toggle('sel-chk',exportSel[id]); }
+function exportSelAll(){ DB.anomalies.forEach(function(r){ exportSel[r.id]=true; }); renderExportList(); }
+function exportClear(){ exportSel={}; renderExportList(); }
+function makeExcel(){
+  var sel=DB.anomalies.filter(function(r){ return exportSel[r.id]; });
+  if(!sel.length){ showToast(t('no-sel'),'warning'); return; }
+  showToast(t('excel-building'),'info',5000);
+  callGasPost({action:'buildDelayReport',device:'anomaly_app',data:sel})
+    .then(function(r){ if(r.downloadUrl){ window.open(r.downloadUrl,'_blank'); showToast(t('excel-ok'),'success'); } else { dlCsv(sel); showToast(t('excel-ok'),'success'); } })
+    .catch(function(){ dlCsv(sel); showToast(t('excel-ok'),'success'); });
+}
+function dlCsv(rows){
+  var h=['No','報告日','報告者','部品番号','部品名','支給メーカー','指示数','納期','遅延理由','包材記号','その他'];
+  var lines=[h.join(',')];
+  rows.forEach(function(r,i){ lines.push([i+1,r.reportDate||'',r.reporter||'',r.itemCode||'',r.itemName||'',r.makerName||'',r.defectQty||'',r.deliveryDate||'',r.phenomenon||'',r.packingMarks||'',r.note||''].map(function(v){ var s=String(v); if(/[,"\n]/.test(s)) s='"'+s.replace(/"/g,'""')+'"'; return s; }).join(',')); });
+  var blob=new Blob(['\uFEFF'+lines.join('\r\n')],{type:'text/csv;charset=utf-8;'});
+  var url=URL.createObjectURL(blob); var a=document.createElement('a'); a.href=url; a.download='納入遅延報告書_'+today()+'.csv'; a.click(); URL.revokeObjectURL(url);
+}
+
+// ── SCREEN / TAB ─────────────────────────
+function switchTab(name){
+  ['apply','history','export'].forEach(function(s){
+    document.getElementById('sc-'+s).classList.toggle('active',s===name);
+    var tb=document.getElementById('tab-'+s); if(tb) tb.classList.toggle('active',s===name);
+  });
+  if(name==='history'){ loadHistory(); renderHistory(); }
+  if(name==='export'){ loadHistory(); renderExportList(); }
+}
+
+// ── LOGIN (called from WMS parent or direct) ──
+function initApp(workerId,workerName,role){
+  SESSION.workerId=workerId; SESSION.workerName=workerName; SESSION.role=role||'operator';
+  document.body.setAttribute('data-role', SESSION.role);
+  document.getElementById('header-user').textContent=workerName+' ('+role+')';
+  var d=new Date(); document.getElementById('header-date').textContent=d.getFullYear()+'/'+(d.getMonth()+1)+'/'+d.getDate();
+  applyRole();
+  // マスタ取得前にinp-workerを先行封鎖（loadMaster内でオーバーレイ表示）
+  var wi=document.getElementById('inp-worker'); if(wi) wi.disabled=true;
+  loadMaster();
+}
+
+function doLogout(){
+  // 親ウィンドウ（WMS）に通知して閉じる or 元の画面に戻す
+  if(window.opener){ window.close(); }
+  else if(window.parent&&window.parent!==window){ window.parent.postMessage({type:'anomaly_app_logout'},'*'); }
+}
+
+// ── INIT ─────────────────────────────────
+window.addEventListener('load',function(){
+  // 起動直後にスキャン入力を封鎖（initApp内でloadMasterがオーバーレイを表示）
+  var wi=document.getElementById('inp-worker'); if(wi) wi.disabled=true;
+
+  // URLパラメータ or postMessage でsessionを受け取る
+  var params=new URLSearchParams(window.location.search);
+  var wid=params.get('wid')||'';
+  var wname=params.get('wname')||'';
+  var role=params.get('role')||'operator';
+  if(wid){ initApp(wid,wname,role); }
+  else {
+    // スタンドアロン起動時はデフォルト
+    initApp('—','未設定','operator');
+  }
+
+  // postMessage受信（WMSからの起動）
+  window.addEventListener('message',function(e){
+    if(e.data&&e.data.type==='anomaly_init'){
+      initApp(e.data.workerId||'',e.data.workerName||'',e.data.role||'operator');
+    }
+  });
+
+  applyTranslations();
+});
+</script>
+</body>
+</html>
