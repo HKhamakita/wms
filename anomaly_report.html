@@ -1,0 +1,2607 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+<meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
+<title>異常報告 - 早津工業社</title>
+<meta name="theme-color" content="#1a1d2e">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="異常報告">
+<link rel="manifest" href="data:application/json,{%22name%22:%22%E7%95%B0%E5%B8%B8%E5%A0%B1%E5%91%8A%20-%20%E6%97%A9%E6%B4%A5%E5%B7%A5%E6%A5%AD%E7%A4%BE%22,%22short_name%22:%22%E7%95%B0%E5%B8%B8%E5%A0%B1%E5%91%8A%22,%22theme_color%22:%22%231a1d2e%22,%22background_color%22:%22%231a1d2e%22,%22display%22:%22standalone%22,%22orientation%22:%22portrait%22}">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+/* ══════════════════════════════════════════════════
+   CSS 変数 / ダークテーマ (konpo_app.html 準拠)
+══════════════════════════════════════════════════ */
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+/* ── ライトテーマ（デフォルト / operator・kanri） ── */
+:root{
+  --bg:#f0f2f5;--surface:#ffffff;--surface2:#f5f6fa;--surface3:#e8eaf0;--border:#c5c9d8;
+  --text:#1a1d2e;--text2:#424875;--text3:#7c83b2;
+  --blue:#3f51b5;--blue2:#3949ab;--blue-bg:rgba(63,81,181,.10);
+  --green:#1b5e20;--green2:#2e7d32;--green-bg:rgba(27,94,32,.12);
+  --red:#b71c1c;--red2:#c62828;--red-bg:rgba(183,28,28,.12);
+  --orange:#e65100;--orange2:#ef6c00;--orange-bg:rgba(230,81,0,.10);
+  --yellow:#f9a825;--yellow2:#f57f17;
+  --cyan:#006064;--cyan2:#00838f;
+  --purple:#4a148c;--purple2:#6a1b9a;
+  --auto-bg:#e8f5e9;/* 自動入力欄の背景 */
+  --rad:8px;--rad-lg:12px;
+  --shadow:0 2px 8px rgba(0,0,0,.12);
+  --header-h:48px;--lang-h:36px;--tabs-h:56px;
+}
+/* ── ダークテーマ（administrator のみ body.dark-theme で適用） ── */
+body.dark-theme{
+  --bg:#10131a;--surface:#181c27;--surface2:#1f2437;--surface3:#252a3d;--border:#2d3350;
+  --text:#e6e9f4;--text2:#9fa8da;--text3:#5c6bc0;
+  --blue:#3f51b5;--blue2:#7986cb;--blue-bg:rgba(63,81,181,.15);
+  --green:#1b5e20;--green2:#66bb6a;--green-bg:rgba(27,94,32,.2);
+  --red:#b71c1c;--red2:#ef5350;--red-bg:rgba(183,28,28,.2);
+  --orange:#e65100;--orange2:#ffa726;--orange-bg:rgba(230,81,0,.15);
+  --yellow:#f9a825;--yellow2:#ffee58;
+  --cyan:#006064;--cyan2:#26c6da;
+  --purple:#4a148c;--purple2:#ab47bc;
+  --auto-bg:#1a2a1a;
+}
+html,body{height:100%;overflow:hidden;}
+body{background:var(--bg);color:var(--text);font-family:'Hiragino Sans','Meiryo',sans-serif;font-size:21px;display:flex;flex-direction:column;}
+
+/* ── 言語バー ── */
+#lang-bar{
+  position:fixed;top:0;left:0;right:0;height:var(--lang-h);
+  background:rgba(16,19,26,.98);border-bottom:1px solid var(--border);
+  z-index:300;display:flex;align-items:center;justify-content:space-between;padding:0 12px;gap:8px;
+}
+#lang-left{display:flex;align-items:center;gap:6px;}
+#lang-right{display:flex;align-items:center;gap:8px;}
+.lang-btn{
+  padding:3px 10px;border-radius:14px;border:1.5px solid var(--border);
+  background:var(--surface2);color:var(--text2);font-size:16px;font-weight:700;cursor:pointer;
+  transition:all .15s;
+}
+.lang-btn.active,.lang-btn:hover{background:var(--blue);border-color:var(--blue);color:#fff;}
+#app-badge{font-size:16px;font-weight:800;color:var(--blue2);letter-spacing:.5px;}
+#sync-status{font-size:15px;color:var(--text3);}
+#sync-btn{font-size:16px;padding:3px 10px;border-radius:10px;cursor:pointer;
+  background:var(--surface2);border:1.5px solid var(--border);color:var(--text2);}
+#sync-btn:hover{border-color:var(--blue);color:var(--blue2);}
+
+/* ── タブバー ── */
+#tabs{
+  position:fixed;bottom:0;left:0;right:0;height:var(--tabs-h);
+  background:rgba(16,19,26,.98);border-top:1px solid var(--border);
+  display:flex;z-index:300;
+}
+.tab-btn{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  border:none;background:none;color:var(--text3);cursor:pointer;padding:0;
+  font-size:15px;font-weight:700;font-family:inherit;transition:color .15s;
+  border-top:2px solid transparent;
+}
+.tab-btn .ti{font-size:28px;line-height:1;}
+.tab-btn.active{color:var(--blue2);border-top-color:var(--blue2);}
+.tab-btn[hidden]{display:none;}
+
+/* ── スクリーン ── */
+.screen{
+  display:none;position:fixed;
+  top:var(--lang-h);left:0;right:0;bottom:var(--tabs-h);
+  overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding:14px 14px 80px;
+}
+.screen.active{display:block;}
+
+/* ── ローディングオーバーレイ ── */
+#loading-overlay{
+  display:none;position:fixed;inset:0;background:rgba(10,12,18,.88);
+  z-index:9000;flex-direction:column;align-items:center;justify-content:center;gap:20px;
+}
+#loading-overlay.active{display:flex;}
+.spinner{
+  width:48px;height:48px;border:4px solid var(--border);
+  border-top-color:var(--blue2);border-radius:50%;
+  animation:spin .8s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+.loading-msg{font-size:21px;font-weight:700;color:var(--text2);}
+#loading-retry-btn{
+  display:none;padding:10px 24px;background:var(--red2);color:#fff;
+  border:none;border-radius:var(--rad);font-size:21px;font-weight:700;cursor:pointer;
+  margin-top:8px;
+}
+#loading-retry-btn:hover{background:var(--red);}
+
+/* ── トースト ── */
+#toast-wrap{position:fixed;top:44px;right:12px;z-index:9999;display:flex;flex-direction:column;gap:6px;pointer-events:none;}
+.toast{
+  background:#1a1d2e;color:#fff;padding:10px 16px;border-radius:var(--rad);
+  font-size:18px;font-weight:700;box-shadow:var(--shadow);
+  opacity:0;transform:translateX(20px);transition:all .22s;max-width:320px;
+}
+.toast.show{opacity:1;transform:translateX(0);}
+.toast.success{border-left:3px solid var(--green2);}
+.toast.error{border-left:3px solid var(--red2);}
+.toast.info{border-left:3px solid var(--blue2);}
+.toast.warning{border-left:3px solid var(--orange2);}
+
+/* ── モーダル ── */
+.modal-overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);
+  z-index:1000;align-items:center;justify-content:center;padding:16px;
+}
+.modal-overlay.open{display:flex;}
+.modal{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--rad-lg);
+  padding:24px;width:100%;max-width:560px;box-shadow:0 8px 40px rgba(0,0,0,.5);
+  max-height:90vh;overflow-y:auto;
+}
+.modal-title{font-size:22px;font-weight:800;margin-bottom:16px;color:var(--text);}
+.modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;
+  padding-top:14px;border-top:1px solid var(--border);}
+
+/* ── カード ── */
+.card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--rad-lg);padding:16px;margin-bottom:12px;
+  box-shadow:var(--shadow);
+}
+.card-title{font-size:16px;font-weight:700;color:var(--text3);
+  text-transform:uppercase;letter-spacing:.6px;margin-bottom:12px;}
+
+/* ── フォーム ── */
+.form-group{margin-bottom:14px;}
+.form-label{display:block;font-size:16px;font-weight:700;color:var(--text2);margin-bottom:5px;}
+.form-label .req{color:var(--red2);margin-left:2px;}
+.inp{
+  width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--rad);
+  font-size:21px;font-family:inherit;outline:none;
+  background:var(--surface2);color:var(--text);transition:border-color .15s;
+}
+.inp:focus{border-color:var(--blue2);}
+.inp[readonly]{background:var(--auto-bg);color:var(--green2);border-color:#a5d6a7;cursor:default;}
+.inp::placeholder{color:var(--text3);}
+select.inp{cursor:pointer;}
+textarea.inp{resize:vertical;min-height:72px;}
+
+/* ── ボタン ── */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  padding:9px 18px;border-radius:var(--rad);border:none;
+  font-size:19px;font-weight:700;font-family:inherit;cursor:pointer;
+  min-height:48px;transition:all .15s;
+}
+.btn-primary{background:var(--blue);color:#fff;} .btn-primary:hover{background:var(--blue2);}
+.btn-success{background:var(--green);color:#fff;} .btn-success:hover{background:var(--green2);}
+.btn-danger{background:var(--red);color:#fff;} .btn-danger:hover{background:var(--red2);}
+.btn-warning{background:var(--orange);color:#fff;} .btn-warning:hover{background:var(--orange2);}
+.btn-ghost{background:var(--surface2);color:var(--text2);border:1.5px solid var(--border);}
+.btn-ghost:hover{border-color:var(--blue);color:var(--blue2);}
+.btn-sm{padding:5px 12px;font-size:16px;min-height:36px;}
+.btn-lg{padding:12px 28px;font-size:22px;min-height:56px;}
+.btn-full{width:100%;}
+.btn:disabled{opacity:.35;cursor:not-allowed;}
+
+/* ── バッジ ── */
+.badge{display:inline-block;padding:2px 10px;border-radius:12px;font-size:16px;font-weight:700;}
+.badge-blue{background:var(--blue-bg);color:var(--blue2);}
+.badge-green{background:var(--green-bg);color:var(--green2);}
+.badge-red{background:var(--red-bg);color:var(--red2);}
+.badge-orange{background:var(--orange-bg);color:var(--orange2);}
+.badge-gray{background:var(--surface3);color:var(--text2);}
+
+/* ── データテーブル ── */
+.data-table{width:100%;border-collapse:collapse;font-size:18px;}
+.data-table th{background:var(--surface3);color:var(--text2);font-weight:700;
+  padding:8px 10px;text-align:left;border-bottom:2px solid var(--border);white-space:nowrap;}
+.data-table td{padding:7px 10px;border-bottom:1px solid var(--border);color:var(--text);}
+.data-table tr:hover td{background:var(--surface2);}
+.data-table-wrap{overflow-x:auto;border-radius:var(--rad);}
+
+/* ══════════════════════
+   STEP UI
+══════════════════════ */
+.step-header{
+  display:flex;align-items:center;gap:12px;margin-bottom:20px;
+}
+.step-num{
+  width:42px;height:42px;border-radius:50%;background:var(--blue);color:#fff;
+  font-size:22px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.step-num.done{background:var(--green);}
+.step-num.active{background:var(--blue2);box-shadow:0 0 0 4px rgba(121,134,203,.25);}
+.step-title{font-size:22px;font-weight:800;color:var(--text);}
+.step-subtitle{font-size:18px;color:var(--text3);margin-top:2px;}
+
+/* スキャン入力エリア */
+.scan-area{
+  background:var(--blue-bg);border:2px solid var(--blue);border-radius:var(--rad-lg);
+  padding:16px;margin-bottom:14px;
+}
+.scan-area.warning{background:var(--orange-bg);border-color:var(--orange2);}
+.scan-label{font-size:19px;font-weight:700;color:var(--blue2);margin-bottom:8px;}
+.scan-label.warning{color:var(--orange2);}
+.scan-inp{
+  width:100%;padding:10px 14px;border:2px solid var(--blue2);border-radius:var(--rad);
+  font-size:24px;font-weight:700;font-family:inherit;text-align:center;
+  outline:none;background:var(--surface);color:var(--text);letter-spacing:2px;
+}
+.scan-inp:focus{box-shadow:0 0 0 3px rgba(121,134,203,.25);}
+.scan-hint{font-size:16px;color:var(--text3);margin-top:6px;}
+
+/* 作業者確認パネル */
+#worker-info-panel{
+  display:none;padding:14px;background:var(--green-bg);border:1.5px solid var(--green2);
+  border-radius:var(--rad-lg);margin-bottom:14px;
+}
+#worker-info-panel.active{display:block;}
+.wi-name{font-size:26px;font-weight:800;color:var(--green2);margin-bottom:4px;}
+.wi-category{font-size:18px;color:var(--text2);}
+
+/* 品番情報パネル */
+#item-info-panel{
+  display:none;padding:14px;background:var(--blue-bg);border:1.5px solid var(--blue2);
+  border-radius:var(--rad-lg);margin-bottom:14px;
+}
+#item-info-panel.active{display:block;}
+.ii-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;}
+.ii-item{}
+.ii-label{font-size:15px;color:var(--text3);font-weight:700;margin-bottom:2px;}
+.ii-value{font-size:19px;font-weight:700;color:var(--text);}
+.ii-value.big{font-size:24px;color:var(--blue2);}
+
+/* 納期選択 */
+#duedate-list{display:flex;flex-direction:column;gap:8px;margin-bottom:14px;}
+.duedate-opt{
+  padding:12px 16px;background:var(--surface2);border:2px solid var(--border);
+  border-radius:var(--rad);cursor:pointer;font-size:21px;font-weight:700;
+  transition:all .15s;
+}
+.duedate-opt:hover{border-color:var(--blue);color:var(--blue2);}
+.duedate-opt.selected{background:var(--blue-bg);border-color:var(--blue2);color:var(--blue2);}
+
+/* 報告種別ボタン */
+.type-btns{display:flex;gap:12px;margin-bottom:14px;}
+.type-btn{
+  flex:1;padding:20px 10px;background:var(--surface2);border:2px solid var(--border);
+  border-radius:var(--rad-lg);cursor:pointer;text-align:center;transition:all .2s;
+}
+.type-btn .tb-icon{font-size:40px;margin-bottom:8px;}
+.type-btn .tb-label{font-size:22px;font-weight:800;color:var(--text2);}
+.type-btn:hover{border-color:var(--blue);} 
+.type-btn.selected-parts{background:var(--orange-bg);border-color:var(--orange2);}
+.type-btn.selected-parts .tb-label{color:var(--orange2);}
+.type-btn.selected-packing{background:var(--blue-bg);border-color:var(--blue2);}
+.type-btn.selected-packing .tb-label{color:var(--blue2);}
+
+/* 包材チェックリスト */
+#packing-list-wrap{margin-bottom:14px;}
+#packing-list{display:flex;flex-wrap:wrap;gap:8px;}
+.packing-chk{
+  padding:7px 14px;background:var(--surface2);border:1.5px solid var(--border);
+  border-radius:20px;cursor:pointer;font-size:18px;font-weight:700;color:var(--text2);
+  transition:all .15s;user-select:none;
+}
+.packing-chk:hover{border-color:var(--blue);}
+.packing-chk.checked{background:var(--blue-bg);border-color:var(--blue2);color:var(--blue2);}
+
+/* 事象選択 */
+.phenomenon-opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+.ph-opt{
+  padding:12px;background:var(--surface2);border:2px solid var(--border);
+  border-radius:var(--rad);cursor:pointer;font-size:19px;font-weight:700;
+  text-align:center;color:var(--text2);transition:all .15s;
+}
+.ph-opt:hover{border-color:var(--blue);}
+.ph-opt.selected{background:var(--red-bg);border-color:var(--red2);color:var(--red2);}
+
+/* 履歴フィルター */
+#history-filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:flex-end;}
+.filter-group{display:flex;flex-direction:column;gap:4px;min-width:120px;}
+.filter-group label{font-size:15px;font-weight:700;color:var(--text3);}
+.filter-inp{
+  padding:6px 10px;border:1.5px solid var(--border);border-radius:var(--rad);
+  font-size:18px;font-family:inherit;background:var(--surface2);color:var(--text);outline:none;
+}
+.filter-inp:focus{border-color:var(--blue);}
+
+/* 履歴カード (スマホ用) */
+.anomaly-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--rad-lg);
+  padding:14px;margin-bottom:10px;cursor:pointer;transition:border-color .15s;
+}
+.anomaly-card:hover{border-color:var(--blue);}
+.ac-head{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.ac-id{font-size:15px;color:var(--text3);}
+.ac-date{font-size:18px;font-weight:700;color:var(--text2);}
+.ac-body{font-size:19px;color:var(--text);}
+.ac-item{font-size:21px;font-weight:800;color:var(--blue2);}
+.ac-footer{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;align-items:center;}
+.ac-chk{margin-right:auto;}
+
+/* 編集モーダル内 ROKI 欄 */
+#roki-section{display:none;}
+#roki-section.visible{display:block;}
+
+/* 設定画面 */
+.settings-section{margin-bottom:24px;}
+.settings-section h3{font-size:19px;font-weight:800;color:var(--text2);
+  margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+#role-settings-table-wrap{overflow-x:auto;margin-bottom:10px;}
+
+/* GAS URL 設定 */
+#gas-url-inp{font-size:18px;}
+
+/* 納期自動入力（作業依頼書から自動セット時）*/
+.auto-filled-date{background:var(--auto-bg)!important;color:var(--green2)!important;border-color:#a5d6a7!important;cursor:default!important;}
+
+/* ── 初回セットアップ画面 ── */
+#setup-screen{
+  display:none;position:fixed;inset:0;z-index:8000;
+  background:var(--bg);align-items:center;justify-content:center;
+  flex-direction:column;padding:24px;
+}
+#setup-screen.active{display:flex;}
+.setup-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--rad-lg);
+  padding:32px 28px;width:100%;max-width:480px;box-shadow:0 8px 40px rgba(0,0,0,.5);
+}
+.setup-logo{font-size:32px;font-weight:800;color:var(--blue2);text-align:center;margin-bottom:4px;letter-spacing:.5px;}
+.setup-sub{font-size:18px;color:var(--text3);text-align:center;margin-bottom:28px;}
+.setup-step{
+  background:var(--surface2);border:1px solid var(--border);border-radius:var(--rad);
+  padding:14px;margin-bottom:14px;
+}
+.setup-step-title{font-size:18px;font-weight:800;color:var(--text2);margin-bottom:10px;}
+.setup-hint{font-size:16px;color:var(--text3);margin-top:6px;line-height:1.6;}
+.setup-hint a{color:var(--blue2);text-decoration:none;}
+.setup-err{font-size:18px;color:var(--red2);font-weight:700;min-height:18px;margin-bottom:10px;text-align:center;}
+
+/* ステップナビ */
+#step-nav{
+  display:flex;align-items:center;gap:4px;margin-bottom:20px;
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--rad);
+  padding:10px 14px;
+}
+.sn-dot{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:18px;font-weight:700;flex-shrink:0;}
+.sn-dot.done{background:var(--green);color:#fff;}
+.sn-dot.active{background:var(--blue2);color:#fff;box-shadow:0 0 0 3px rgba(121,134,203,.25);}
+.sn-dot.pending{background:var(--surface3);color:var(--text3);}
+.sn-line{flex:1;height:2px;background:var(--border);}
+.sn-line.done{background:var(--green);}
+
+/* Excel チェックボックス列 */
+.xlsx-chk-col input[type=checkbox]{width:20px;height:20px;cursor:pointer;}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════ 言語バー ═══════════════════ -->
+<div id="lang-bar">
+  <div id="lang-left">
+    <span id="app-badge">⚠ 異常報告</span>
+    <button class="lang-btn active" onclick="setLang('ja')">JPN</button>
+    <button class="lang-btn" onclick="setLang('pt')">POR</button>
+    <button class="lang-btn" onclick="setLang('tl')">TGL</button>
+    <button class="lang-btn" onclick="setLang('vi')">VIE</button>
+  </div>
+  <div id="lang-right">
+    <span id="sync-status"></span>
+    <button id="sync-btn" onclick="syncMaster(true)">🔄 更新</button>
+  </div>
+</div>
+
+<!-- ═══════════════════ 初回セットアップ画面 ═══════════════════ -->
+<div id="setup-screen">
+  <div class="setup-card">
+    <div class="setup-logo">⚠ 異常報告アプリ</div>
+    <div class="setup-sub">早津工業社 / 浜北工場 製造3課</div>
+
+    <div class="setup-step">
+      <div class="setup-step-title">① GAS エンドポイント URL を入力してください</div>
+      <input type="url" id="setup-gas-url" class="inp"
+             placeholder="https://script.google.com/macros/s/..."
+             style="font-size:12px;margin-bottom:6px;"
+             oninput="document.getElementById('setup-err').textContent=''">
+      <div class="setup-hint">
+        Google Apps Script のデプロイ URL を貼り付けてください。<br>
+        <b>例：</b> <span style="color:var(--text3);font-size:10px;">https://script.google.com/macros/s/AKfy.../exec</span>
+      </div>
+    </div>
+
+    <div class="setup-err" id="setup-err"></div>
+
+    <button class="btn btn-primary btn-full btn-lg" onclick="onSetupSave()">
+      ✓ 保存して接続
+    </button>
+  </div>
+</div>
+
+<!-- ═══════════════════ ローディング ═══════════════════ -->
+<div id="loading-overlay">
+  <div class="spinner"></div>
+  <div class="loading-msg" id="loading-msg">マスタ取得中...</div>
+  <div id="loading-submsg" style="display:none;font-size:19px;font-weight:700;color:#ffd54f;margin-top:8px;text-align:center;">仕損品・現品票の提出をお願いします。</div>
+  <button id="loading-retry-btn" onclick="initApp()">再試行</button>
+</div>
+
+<!-- ═══════════════════ タブバー ═══════════════════ -->
+<nav id="tabs">
+  <button class="tab-btn active" data-tab="report" onclick="switchTab('report')">
+    <span class="ti">📝</span>
+    <span data-i18n="tab_report">報告</span>
+  </button>
+  <button class="tab-btn" data-tab="history" onclick="switchTab('history')" style="display:none;">
+    <span class="ti">📋</span>
+    <span data-i18n="tab_history">履歴</span>
+  </button>
+  <button class="tab-btn" data-tab="settings" style="display:none;" onclick="switchTab('settings')">
+    <span class="ti">⚙️</span>
+    <span data-i18n="tab_settings">設定</span>
+  </button>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════════
+     SCREEN 1: 報告登録 (4ステップ)
+══════════════════════════════════════════════════════════ -->
+<div class="screen active" id="sc-report">
+
+  <!-- ステップナビゲーター -->
+  <div id="step-nav">
+    <div class="sn-dot active" id="sn1">1</div>
+    <div class="sn-line" id="sl1"></div>
+    <div class="sn-dot pending" id="sn2">2</div>
+    <div class="sn-line" id="sl2"></div>
+    <div class="sn-dot pending" id="sn3">3</div>
+    <div class="sn-line" id="sl3"></div>
+    <div class="sn-dot pending" id="sn4">4</div>
+  </div>
+
+  <!-- ─── STEP 1: 作業者確認 ─── -->
+  <div id="step1">
+    <div class="step-header">
+      <div class="step-num active">1</div>
+      <div>
+        <div class="step-title" data-i18n="step1_title">作業者確認</div>
+        <div class="step-subtitle" data-i18n="step1_sub">QRコードをスキャンしてください</div>
+      </div>
+    </div>
+    <div class="scan-area" id="worker-scan-area">
+      <div class="scan-label" data-i18n="worker_qr_label">作業者QRコード</div>
+      <input type="text" id="worker-qr-inp" class="scan-inp" autocomplete="off"
+             placeholder="QRスキャン待機中" data-i18n-ph="scanning_wait"
+             oninput="onWorkerQrInput(this.value)">
+      <div class="scan-hint" id="worker-scan-hint" data-i18n="worker_scan_hint">QRリーダーでスキャンするか、入力してください</div>
+    </div>
+    <!-- 手動入力 (3回失敗時表示) -->
+    <div id="worker-manual" style="display:none;">
+      <div class="scan-area warning">
+        <div class="scan-label warning" data-i18n="manual_input_label">手動入力</div>
+        <select id="worker-manual-sel" class="scan-inp" onchange="onWorkerManualSelect(this.value)">
+          <option value="" data-i18n="select_worker_opt">作業者を選択...</option>
+        </select>
+      </div>
+    </div>
+    <!-- 確認パネル -->
+    <div id="worker-info-panel">
+      <div class="wi-name" id="wi-name"></div>
+      <div class="wi-category" id="wi-category"></div>
+    </div>
+    <button class="btn btn-primary btn-full btn-lg" id="step1-next-btn" disabled onclick="gotoStep(2)">
+      <span data-i18n="next_btn">次へ</span> →
+    </button>
+  </div>
+
+  <!-- ─── STEP 2: 依頼書読取 ─── -->
+  <div id="step2" style="display:none;">
+    <div class="step-header">
+      <div class="step-num active">2</div>
+      <div>
+        <div class="step-title" data-i18n="step2_title">依頼書読取</div>
+        <div class="step-subtitle" data-i18n="step2_sub">品番をスキャンしてください</div>
+      </div>
+    </div>
+    <div class="scan-area">
+      <div class="scan-label" data-i18n="item_scan_label">品番スキャン</div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <input type="text" id="item-scan-inp" class="scan-inp" autocomplete="off"
+               placeholder="品番スキャン待機中" data-i18n-ph="scanning_wait"
+               oninput="onItemScanInput(this.value)"
+               style="flex:1;">
+        <button class="btn btn-ghost btn-sm" id="manual-input-toggle-btn"
+                onclick="toggleManualInputMode()"
+                style="white-space:nowrap;flex-shrink:0;">✏️ 手入力</button>
+      </div>
+      <div class="scan-hint" data-i18n="item_scan_hint">作業依頼書のバーコードをスキャン</div>
+      <div id="manual-input-mode-badge" style="display:none;margin-top:6px;font-size:15px;color:var(--orange2);font-weight:700;">✏️ 手入力モード（QR自動取込OFF）</div>
+    </div>
+    <!-- 品番情報 -->
+    <div id="item-info-panel">
+      <div class="card-title" data-i18n="item_info_title">品番情報</div>
+      <div class="ii-grid">
+        <div class="ii-item"><div class="ii-label" data-i18n="item_code_lbl">品番</div><div class="ii-value big" id="ii-code"></div></div>
+        <div class="ii-item"><div class="ii-label" data-i18n="item_name_lbl">品名</div><div class="ii-value" id="ii-name"></div></div>
+        <div class="ii-item"><div class="ii-label" data-i18n="maker_lbl">メーカー</div><div class="ii-value" id="ii-maker"></div></div>
+        <div class="ii-item"><div class="ii-label" data-i18n="cust_part_lbl">客先品番</div><div class="ii-value" id="ii-custpart"></div></div>
+      </div>
+    </div>
+    <!-- 複数納期選択 -->
+    <div id="duedate-section" style="display:none;">
+      <div class="card-title" data-i18n="duedate_select_title">納期を選択してください</div>
+      <div id="duedate-list"></div>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-ghost" onclick="gotoStep(1)">← <span data-i18n="back_btn">戻る</span></button>
+      <button class="btn btn-primary" style="flex:1;" id="step2-next-btn" disabled onclick="gotoStep(3)">
+        <span data-i18n="next_btn">次へ</span> →
+      </button>
+    </div>
+  </div>
+
+  <!-- ─── STEP 3: 報告種別 ─── -->
+  <div id="step3" style="display:none;">
+    <div class="step-header">
+      <div class="step-num active">3</div>
+      <div>
+        <div class="step-title" data-i18n="step3_title">報告種別</div>
+        <div class="step-subtitle" data-i18n="step3_sub">対象を選択してください</div>
+      </div>
+    </div>
+    <div class="type-btns">
+      <div class="type-btn" id="type-parts" onclick="selectReportType('部品')">
+        <div class="tb-icon">🔩</div>
+        <div class="tb-label" data-i18n="type_parts">部品</div>
+      </div>
+      <div class="type-btn" id="type-packing" onclick="selectReportType('包材')">
+        <div class="tb-icon">📦</div>
+        <div class="tb-label" data-i18n="type_packing">包材</div>
+      </div>
+    </div>
+    <!-- 包材チェックリスト -->
+    <div id="packing-list-wrap" style="display:none;">
+      <div class="card-title" data-i18n="packing_list_title">包材を選択（複数可）</div>
+      <div id="packing-list"></div>
+    </div>
+    <!-- 部品（構成部品）チェックリスト -->
+    <div id="parts-list-wrap" style="display:none;">
+      <div class="card-title">梱包品（構成部品）を選択（複数可）</div>
+      <div id="parts-list" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:8px;">
+      <button class="btn btn-ghost" onclick="gotoStep(2)">← <span data-i18n="back_btn">戻る</span></button>
+      <button class="btn btn-primary" style="flex:1;" id="step3-next-btn" disabled onclick="gotoStep(4)">
+        <span data-i18n="next_btn">次へ</span> →
+      </button>
+    </div>
+  </div>
+
+  <!-- ─── STEP 4: 報告入力・送信 ─── -->
+  <div id="step4" style="display:none;">
+    <div class="step-header">
+      <div class="step-num active">4</div>
+      <div>
+        <div class="step-title" data-i18n="step4_title">報告入力</div>
+        <div class="step-subtitle" data-i18n="step4_sub">内容を確認・入力してください</div>
+      </div>
+    </div>
+
+    <!-- 自動入力（readonly）確認エリア -->
+    <div class="card">
+      <div class="card-title" data-i18n="auto_filled_title">自動入力情報</div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="reporter_lbl">報告者</label>
+        <input type="text" id="f-reporter" class="inp" readonly>
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="item_code_lbl">品番</label>
+        <input type="text" id="f-item-code" class="inp" readonly>
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="item_name_lbl">品名</label>
+        <input type="text" id="f-item-name" class="inp" readonly>
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="report_type_lbl">報告種別</label>
+        <input type="text" id="f-report-type" class="inp" readonly>
+      </div>
+      <div class="form-group" id="f-packing-marks-group" style="display:none;">
+        <label class="form-label" data-i18n="packing_marks_lbl">対象包材</label>
+        <input type="text" id="f-packing-marks" class="inp" readonly>
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="supply_date_lbl">支給日</label>
+        <input type="text" id="f-supply-date" class="inp" readonly>
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="work_order_lbl">作業依頼書番号</label>
+        <input type="text" id="f-work-order" class="inp" readonly>
+      </div>
+    </div>
+
+    <!-- 手動入力 -->
+    <div class="card">
+      <div class="card-title" data-i18n="manual_input_title">報告内容入力</div>
+
+      <!-- TagID バーコード読込 -->
+      <div class="form-group" id="f-tagid-group">
+        <label class="form-label">TagID <span style="font-size:15px;color:var(--text3);font-weight:400;">（バーコード読込 または 無し選択）</span></label>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input type="text" id="f-tagid" class="scan-inp" style="font-size:20px;flex:1;border-radius:var(--rad);"
+                 autocomplete="off" placeholder="バーコードをスキャン"
+                 oninput="onTagIdInput(this.value)">
+          <button class="btn btn-ghost" id="f-tagid-none-btn" onclick="setTagIdNone()" style="white-space:nowrap;">無し</button>
+        </div>
+        <div id="f-tagid-display" style="margin-top:6px;font-size:17px;color:var(--green2);min-height:20px;"></div>
+      </div>
+
+      <!-- 事象選択 -->
+      <div class="form-group">
+        <label class="form-label"><span data-i18n="phenomenon_lbl">事象</span><span class="req">*</span></label>
+        <div class="phenomenon-opts" id="phenomenon-opts"></div>
+        <input type="text" id="f-phenomenon-other" class="inp" placeholder="その他の内容を入力"
+               data-i18n-ph="ph_other_ph" style="display:none;margin-top:8px;">
+      </div>
+
+      <!-- 状況詳細 -->
+      <div class="form-group">
+        <label class="form-label" data-i18n="situation_lbl">状況詳細<span class="req" id="situation-req">*</span></label>
+        <textarea id="f-situation" class="inp" rows="3" placeholder="状況を詳しく記入してください（どんな容器、容器のどの位置など）"
+                  data-i18n-ph="situation_ph"></textarea>
+      </div>
+
+      <!-- 不良数量 -->
+      <div class="form-group">
+        <label class="form-label" data-i18n="defect_qty_lbl">数量<span class="req">*</span></label>
+        <input type="number" id="f-defect-qty" class="inp" min="1" placeholder="数量" data-i18n-ph="qty_ph">
+      </div>
+
+      <!-- 納期 -->
+      <div class="form-group">
+        <label class="form-label" data-i18n="delivery_date_lbl">納期</label>
+        <input type="date" id="f-delivery-date" class="inp">
+      </div>
+
+      <!-- ROKI 項目 (administrator のみ表示) -->
+      <div id="roki-section">
+        <div class="card-title" style="color:var(--orange2);margin-top:8px;">ROKI 報告 (管理者専用)</div>
+        <div class="form-group">
+          <label class="form-label">ROKI 報告</label>
+          <select id="f-roki-report" class="inp">
+            <option value="未">未</option>
+            <option value="済">済</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">ROKI 報告日</label>
+          <input type="date" id="f-roki-date" class="inp">
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-ghost" onclick="gotoStep(3)">← <span data-i18n="back_btn">戻る</span></button>
+      <button class="btn btn-success" style="flex:1;" id="submit-btn" onclick="submitReport()">
+        <span data-i18n="submit_btn">✓ 報告送信</span>
+      </button>
+    </div>
+    <div style="height:16px;"></div>
+  </div>
+</div><!-- /sc-report -->
+
+<!-- ══════════════════════════════════════════════════════════
+     SCREEN 2: 履歴
+══════════════════════════════════════════════════════════ -->
+<div class="screen" id="sc-history">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+    <div style="font-size:18px;font-weight:800;" data-i18n="history_title">履歴</div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-ghost btn-sm" onclick="loadHistory()" data-i18n="reload_btn">再取得</button>
+      <button class="btn btn-primary btn-sm" id="xlsx-export-btn" onclick="exportSelectedXlsx()" data-i18n="xlsx_btn" hidden>
+        📊 Excel出力
+      </button>
+    </div>
+  </div>
+
+  <!-- フィルター -->
+  <div id="history-filters">
+    <div class="filter-group">
+      <label data-i18n="filter_month">月</label>
+      <input type="month" id="fil-month" class="filter-inp" oninput="applyFilters()">
+    </div>
+    <div class="filter-group">
+      <label data-i18n="filter_type">種別</label>
+      <select id="fil-type" class="filter-inp" onchange="applyFilters()">
+        <option value="" data-i18n="filter_all">全て</option>
+        <option value="部品" data-i18n="type_parts">部品</option>
+        <option value="包材" data-i18n="type_packing">包材</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label data-i18n="filter_item">品番</label>
+      <input type="text" id="fil-item" class="filter-inp" placeholder="部分一致" data-i18n-ph="partial_match" oninput="applyFilters()">
+    </div>
+    <div class="filter-group" id="fil-reporter-group">
+      <label data-i18n="filter_reporter">作業者</label>
+      <input type="text" id="fil-reporter" class="filter-inp" placeholder="部分一致" data-i18n-ph="partial_match" oninput="applyFilters()">
+    </div>
+  </div>
+
+  <div id="history-list"></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     SCREEN 3: 設定 (administrator のみ)
+══════════════════════════════════════════════════════════ -->
+<div class="screen" id="sc-settings">
+  <div style="font-size:18px;font-weight:800;margin-bottom:18px;" data-i18n="settings_title">設定</div>
+
+  <div class="settings-section">
+    <h3 data-i18n="gas_url_title">GAS エンドポイント</h3>
+    <div class="form-group">
+      <input type="url" id="gas-url-inp" class="inp" placeholder="https://script.google.com/..." data-i18n-ph="gas_url_ph">
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-primary btn-sm" onclick="saveGasUrl()" data-i18n="save_btn">保存</button>
+      <button class="btn btn-ghost btn-sm" onclick="testGasUrl()" data-i18n="test_btn">疎通確認</button>
+    </div>
+  </div>
+
+  <div class="settings-section">
+    <h3 data-i18n="role_settings_title">ロール設定</h3>
+    <div id="role-settings-table-wrap"></div>
+    <button class="btn btn-ghost btn-sm" onclick="openAddRoleModal()" data-i18n="add_role_btn">+ 追加</button>
+    <button class="btn btn-primary btn-sm" onclick="saveRoleSettings()" data-i18n="save_btn" style="margin-left:8px;">保存</button>
+  </div>
+
+  <!-- 事象管理 (administrator のみ) -->
+  <div class="settings-section" id="phenomenon-settings-section" style="display:none;">
+    <h3 style="color:var(--orange2);">事象管理 <span style="font-size:14px;font-weight:400;color:var(--text3);">(管理者専用)</span></h3>
+    <div id="phenomenon-list-wrap" style="margin-bottom:12px;"></div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+      <input type="text" id="new-phenomenon-inp" class="inp" placeholder="新しい事象を入力" style="flex:1;min-width:180px;">
+      <button class="btn btn-ghost btn-sm" onclick="addPhenomenonItem()">+ 追加</button>
+      <button class="btn btn-warning btn-sm" onclick="resetPhenomenonList()">リセット</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════
+   モーダル: 履歴詳細 / 編集
+══════════════════════ -->
+<div class="modal-overlay" id="detail-modal">
+  <div class="modal">
+    <div class="modal-title" data-i18n="detail_title">詳細</div>
+    <div id="detail-content"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('detail-modal')" data-i18n="close_btn">閉じる</button>
+      <button class="btn btn-warning btn-sm" id="detail-edit-btn" onclick="openEditMode()" data-i18n="edit_btn" hidden>編集</button>
+      <button class="btn btn-danger btn-sm" id="detail-delete-btn" onclick="confirmDeleteAnomaly()" data-i18n="delete_btn" hidden>削除</button>
+    </div>
+  </div>
+</div>
+
+<!-- モーダル: 履歴編集 -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal">
+    <div class="modal-title" data-i18n="edit_title">編集</div>
+    <div id="edit-content">
+      <div class="form-group">
+        <label class="form-label" data-i18n="phenomenon_lbl">事象</label>
+        <select id="edit-phenomenon" class="inp"></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="phenomenon_other_lbl">事象その他詳細</label>
+        <input type="text" id="edit-phenomenon-other" class="inp">
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="situation_lbl">状況詳細</label>
+        <textarea id="edit-situation" class="inp" rows="3"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="defect_qty_lbl">数量</label>
+        <input type="number" id="edit-defect-qty" class="inp" min="1">
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="delivery_date_lbl">納期</label>
+        <input type="date" id="edit-delivery-date" class="inp">
+      </div>
+      <!-- 管理者専用 ROKI 欄 -->
+      <div id="edit-roki-section" style="display:none;">
+        <div class="form-group">
+          <label class="form-label">ROKI 報告</label>
+          <select id="edit-roki-report" class="inp">
+            <option value="未">未</option>
+            <option value="済">済</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">ROKI 報告日</label>
+          <input type="date" id="edit-roki-date" class="inp">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('edit-modal')" data-i18n="cancel_btn">キャンセル</button>
+      <button class="btn btn-primary btn-sm" onclick="saveEdit()" data-i18n="save_btn">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- モーダル: ロール追加 -->
+<div class="modal-overlay" id="add-role-modal">
+  <div class="modal">
+    <div class="modal-title" data-i18n="add_role_title">ロール追加</div>
+    <div class="form-group">
+      <label class="form-label" data-i18n="employee_qr_lbl">作業者QRコード</label>
+      <input type="text" id="role-emp-qr" class="inp">
+    </div>
+    <div class="form-group">
+      <label class="form-label" data-i18n="role_lbl">ロール</label>
+      <select id="role-sel" class="inp">
+        <option value="operator">operator</option>
+        <option value="kanri">kanri</option>
+        <option value="admin_role">管理者</option><!-- 表示は「管理者」、内部値は admin_role -->
+      </select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('add-role-modal')" data-i18n="cancel_btn">キャンセル</button>
+      <button class="btn btn-primary btn-sm" onclick="addRoleSetting()" data-i18n="add_btn">追加</button>
+    </div>
+  </div>
+</div>
+
+<!-- モーダル: 削除確認 -->
+<div class="modal-overlay" id="confirm-modal">
+  <div class="modal">
+    <div class="modal-title" data-i18n="confirm_delete_title">削除確認</div>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:16px;" data-i18n="confirm_delete_msg">この異常報告を削除しますか？この操作は取り消せません。</p>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('confirm-modal')" data-i18n="cancel_btn">キャンセル</button>
+      <button class="btn btn-danger btn-sm" id="confirm-delete-ok-btn" data-i18n="delete_btn">削除</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-wrap"></div>
+
+<!-- ══════════════════════════════════════════════════════════
+     JavaScript
+══════════════════════════════════════════════════════════ -->
+<script>
+'use strict';
+
+// ══════════════════════════════════════════
+// i18n (表示のみ翻訳、保存値は日本語固定)
+// ══════════════════════════════════════════
+const I18N = {
+  ja:{
+    tab_report:'報告',tab_history:'履歴',tab_settings:'設定',
+    step1_title:'作業者確認',step1_sub:'QRコードをスキャンしてください',
+    step2_title:'依頼書読取',step2_sub:'品番をスキャンしてください',
+    step3_title:'報告種別',step3_sub:'対象を選択してください',
+    step4_title:'報告入力',step4_sub:'内容を確認・入力してください',
+    worker_qr_label:'作業者QRコード',scanning_wait:'スキャン待機中',
+    worker_scan_hint:'QRリーダーでスキャンするか、入力してください',
+    manual_input_label:'手動入力',select_worker_opt:'作業者を選択...',
+    item_scan_label:'品番スキャン',item_scan_hint:'作業依頼書のバーコードをスキャン',
+    item_info_title:'品番情報',item_code_lbl:'品番',item_name_lbl:'品名',
+    maker_lbl:'メーカー',cust_part_lbl:'客先品番',duedate_select_title:'納期を選択してください',
+    type_parts:'部品',type_packing:'包材',packing_list_title:'包材を選択（複数可）',
+    auto_filled_title:'自動入力情報',reporter_lbl:'報告者',report_type_lbl:'報告種別',
+    packing_marks_lbl:'対象包材',supply_date_lbl:'支給日',work_order_lbl:'作業依頼書番号',
+    manual_input_title:'報告内容入力',phenomenon_lbl:'事象',
+    ph_shortage:'不足',ph_damage:'破損',ph_defective:'支給時から不良',ph_other:'その他',
+    ph_other_ph:'その他の内容を入力',situation_lbl:'状況詳細',situation_ph:'状況を詳しく記入してください',
+    defect_qty_lbl:'数量',qty_ph:'数量',delivery_date_lbl:'納期',
+    submit_btn:'✓ 報告送信',next_btn:'次へ',back_btn:'戻る',
+    history_title:'履歴',reload_btn:'再取得',xlsx_btn:'📊 Excel出力',
+    filter_month:'月',filter_type:'種別',filter_all:'全て',filter_item:'品番',
+    filter_reporter:'作業者',partial_match:'部分一致',
+    detail_title:'詳細',edit_title:'編集',close_btn:'閉じる',edit_btn:'編集',
+    delete_btn:'削除',cancel_btn:'キャンセル',save_btn:'保存',add_btn:'追加',
+    settings_title:'設定',gas_url_title:'GAS エンドポイント',gas_url_ph:'https://script.google.com/...',
+    role_settings_title:'ロール設定',add_role_btn:'+ 追加',
+    add_role_title:'ロール追加',employee_qr_lbl:'作業者QRコード',role_lbl:'ロール',
+    test_btn:'疎通確認',confirm_delete_title:'削除確認',
+    confirm_delete_msg:'この異常報告を削除しますか？この操作は取り消せません。',
+    phenomenon_other_lbl:'事象その他詳細',
+  },
+  pt:{
+    tab_report:'Relatório',tab_history:'Histórico',tab_settings:'Config',
+    step1_title:'Verificar Trabalhador',step1_sub:'Escaneie o QR Code',
+    step2_title:'Ler Ordem',step2_sub:'Escaneie o código do item',
+    step3_title:'Tipo de Relatório',step3_sub:'Selecione o alvo',
+    step4_title:'Inserir Relatório',step4_sub:'Confirme e insira os dados',
+    worker_qr_label:'QR do Trabalhador',scanning_wait:'Aguardando scan',
+    worker_scan_hint:'Escaneie ou insira manualmente',
+    manual_input_label:'Entrada Manual',select_worker_opt:'Selecionar trabalhador...',
+    item_scan_label:'Scan do Item',item_scan_hint:'Escaneie o código de barras da ordem',
+    item_info_title:'Informações do Item',item_code_lbl:'Código',item_name_lbl:'Nome',
+    maker_lbl:'Fabricante',cust_part_lbl:'Nº Peça Cliente',duedate_select_title:'Selecione a data de entrega',
+    type_parts:'Peça',type_packing:'Embalagem',packing_list_title:'Selecione embalagem (múltiplo)',
+    auto_filled_title:'Dados Automáticos',reporter_lbl:'Relator',report_type_lbl:'Tipo',
+    packing_marks_lbl:'Embalagem Alvo',supply_date_lbl:'Data Fornecimento',work_order_lbl:'Nº Ordem',
+    manual_input_title:'Conteúdo do Relatório',phenomenon_lbl:'Fenômeno',
+    ph_shortage:'Falta',ph_damage:'Dano',ph_defective:'Defeito na Entrega',ph_other:'Outro',
+    ph_other_ph:'Descrever',situation_lbl:'Detalhes',situation_ph:'Descreva a situação',
+    defect_qty_lbl:'Quantidade',qty_ph:'Qtd',delivery_date_lbl:'Prazo Entrega',
+    submit_btn:'✓ Enviar Relatório',next_btn:'Próximo',back_btn:'Voltar',
+    history_title:'Histórico',reload_btn:'Recarregar',xlsx_btn:'📊 Excel',
+    filter_month:'Mês',filter_type:'Tipo',filter_all:'Todos',filter_item:'Código',
+    filter_reporter:'Trabalhador',partial_match:'Parcial',
+    detail_title:'Detalhes',edit_title:'Editar',close_btn:'Fechar',edit_btn:'Editar',
+    delete_btn:'Excluir',cancel_btn:'Cancelar',save_btn:'Salvar',add_btn:'Adicionar',
+    settings_title:'Configurações',gas_url_title:'GAS Endpoint',gas_url_ph:'https://script.google.com/...',
+    role_settings_title:'Config de Roles',add_role_btn:'+ Adicionar',
+    add_role_title:'Adicionar Role',employee_qr_lbl:'QR do Funcionário',role_lbl:'Role',
+    test_btn:'Testar',confirm_delete_title:'Confirmar Exclusão',
+    confirm_delete_msg:'Excluir este relatório? Esta ação não pode ser desfeita.',
+    phenomenon_other_lbl:'Detalhes Outro',
+  },
+  tl:{
+    tab_report:'Ulat',tab_history:'Kasaysayan',tab_settings:'Setting',
+    step1_title:'Kumpirmahin ang Manggagawa',step1_sub:'I-scan ang QR Code',
+    step2_title:'Basahin ang Order',step2_sub:'I-scan ang code ng item',
+    step3_title:'Uri ng Ulat',step3_sub:'Pumili ng target',
+    step4_title:'Ipasok ang Ulat',step4_sub:'Kumpirmahin at ilagay ang datos',
+    worker_qr_label:'QR ng Manggagawa',scanning_wait:'Naghihintay ng scan',
+    worker_scan_hint:'I-scan o mag-type',
+    manual_input_label:'Manual na Input',select_worker_opt:'Pumili ng manggagawa...',
+    item_scan_label:'I-scan ang Item',item_scan_hint:'I-scan ang barcode ng order',
+    item_info_title:'Impormasyon ng Item',item_code_lbl:'Code',item_name_lbl:'Pangalan',
+    maker_lbl:'Gumawa',cust_part_lbl:'Part No. ng Customer',duedate_select_title:'Pumili ng petsa',
+    type_parts:'Parte',type_packing:'Pakete',packing_list_title:'Pumili ng packaging (marami)',
+    auto_filled_title:'Awtomatikong Data',reporter_lbl:'Reporter',report_type_lbl:'Uri',
+    packing_marks_lbl:'Target na Pakete',supply_date_lbl:'Petsa ng Supply',work_order_lbl:'No. ng Order',
+    manual_input_title:'Nilalaman ng Ulat',phenomenon_lbl:'Phenomena',
+    ph_shortage:'Kulang',ph_damage:'Sira',ph_defective:'Depekto sa Delivery',ph_other:'Iba pa',
+    ph_other_ph:'Ilarawan',situation_lbl:'Detalye',situation_ph:'Ilarawan ang sitwasyon',
+    defect_qty_lbl:'Dami',qty_ph:'Dami',delivery_date_lbl:'Takdang Araw',
+    submit_btn:'✓ Isumite',next_btn:'Susunod',back_btn:'Bumalik',
+    history_title:'Kasaysayan',reload_btn:'I-reload',xlsx_btn:'📊 Excel',
+    filter_month:'Buwan',filter_type:'Uri',filter_all:'Lahat',filter_item:'Code',
+    filter_reporter:'Manggagawa',partial_match:'Bahagi',
+    detail_title:'Detalye',edit_title:'I-edit',close_btn:'Isara',edit_btn:'I-edit',
+    delete_btn:'Burahin',cancel_btn:'Kanselahin',save_btn:'I-save',add_btn:'Idagdag',
+    settings_title:'Mga Setting',gas_url_title:'GAS Endpoint',gas_url_ph:'https://script.google.com/...',
+    role_settings_title:'Role Settings',add_role_btn:'+ Magdagdag',
+    add_role_title:'Magdagdag ng Role',employee_qr_lbl:'QR ng Empleyado',role_lbl:'Role',
+    test_btn:'Subukan',confirm_delete_title:'Kumpirmahin ang Pagbura',
+    confirm_delete_msg:'Burahin ang ulat na ito? Hindi ito maaaring bawiin.',
+    phenomenon_other_lbl:'Iba Pang Detalye',
+  },
+  vi:{
+    tab_report:'Báo cáo',tab_history:'Lịch sử',tab_settings:'Cài đặt',
+    step1_title:'Xác nhận NLĐ',step1_sub:'Quét mã QR',
+    step2_title:'Đọc phiếu',step2_sub:'Quét mã sản phẩm',
+    step3_title:'Loại báo cáo',step3_sub:'Chọn đối tượng',
+    step4_title:'Nhập báo cáo',step4_sub:'Xác nhận và nhập thông tin',
+    worker_qr_label:'QR nhân viên',scanning_wait:'Chờ quét',
+    worker_scan_hint:'Quét QR hoặc nhập thủ công',
+    manual_input_label:'Nhập thủ công',select_worker_opt:'Chọn nhân viên...',
+    item_scan_label:'Quét mã sản phẩm',item_scan_hint:'Quét mã vạch phiếu yêu cầu',
+    item_info_title:'Thông tin sản phẩm',item_code_lbl:'Mã SP',item_name_lbl:'Tên SP',
+    maker_lbl:'Nhà sản xuất',cust_part_lbl:'Mã KH',duedate_select_title:'Chọn ngày giao',
+    type_parts:'Linh kiện',type_packing:'Bao bì',packing_list_title:'Chọn bao bì (nhiều)',
+    auto_filled_title:'Thông tin tự động',reporter_lbl:'Người báo cáo',report_type_lbl:'Loại',
+    packing_marks_lbl:'Bao bì đã chọn',supply_date_lbl:'Ngày cấp',work_order_lbl:'Số phiếu',
+    manual_input_title:'Nội dung báo cáo',phenomenon_lbl:'Hiện tượng',
+    ph_shortage:'Thiếu',ph_damage:'Hỏng',ph_defective:'Lỗi khi cấp',ph_other:'Khác',
+    ph_other_ph:'Mô tả',situation_lbl:'Chi tiết',situation_ph:'Mô tả tình huống',
+    defect_qty_lbl:'Số lượng',qty_ph:'SL',delivery_date_lbl:'Ngày giao',
+    submit_btn:'✓ Gửi báo cáo',next_btn:'Tiếp',back_btn:'Quay lại',
+    history_title:'Lịch sử',reload_btn:'Tải lại',xlsx_btn:'📊 Excel',
+    filter_month:'Tháng',filter_type:'Loại',filter_all:'Tất cả',filter_item:'Mã SP',
+    filter_reporter:'Nhân viên',partial_match:'Một phần',
+    detail_title:'Chi tiết',edit_title:'Chỉnh sửa',close_btn:'Đóng',edit_btn:'Sửa',
+    delete_btn:'Xóa',cancel_btn:'Hủy',save_btn:'Lưu',add_btn:'Thêm',
+    settings_title:'Cài đặt',gas_url_title:'GAS Endpoint',gas_url_ph:'https://script.google.com/...',
+    role_settings_title:'Cài đặt Role',add_role_btn:'+ Thêm',
+    add_role_title:'Thêm Role',employee_qr_lbl:'QR Nhân viên',role_lbl:'Role',
+    test_btn:'Kiểm tra',confirm_delete_title:'Xác nhận xóa',
+    confirm_delete_msg:'Xóa báo cáo này? Không thể hoàn tác.',
+    phenomenon_other_lbl:'Chi tiết khác',
+  }
+};
+
+// ══════════════════════════════════════════
+// アプリ状態
+// ══════════════════════════════════════════
+let GAS_URL = localStorage.getItem('anomaly_gas_url') || '';
+let LANG = localStorage.getItem('anomaly_lang') || 'ja';
+let ROLE = 'operator'; // 実際の role 変数。UI には出力しない。
+let CURRENT_TAB = 'report';
+let MASTER_ITEMS = new Map(); // itemCode → masterItem
+let WORK_ORDERS_MAP = new Map(); // custPartNo / itemCode → [workOrders]
+let INVENTORY_MAP = new Map();  // tagId → { receiptDate }（GASから取得）
+let WORKERS_MAP = new Map(); // employeeQrNo → worker
+let ROLE_SETTINGS_MAP = new Map(); // employeeQrNo → roleString
+let ALL_HISTORY = []; // 全履歴キャッシュ
+let ROLE_SETTINGS_LIST = []; // roleSettings 配列（設定画面用）
+
+// 事象リスト（デフォルト＋管理者追加分をマージ）
+const PHENOMENON_DEFAULT = ['不足', '破損', '支給時から不良', '貼付け作業済ラベル返却', 'その他'];
+let PHENOMENON_LIST = loadPhenomenonList();
+function loadPhenomenonList() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('anomaly_phenomenon_list') || 'null');
+    if (Array.isArray(saved) && saved.length) return saved;
+  } catch(e) {}
+  return [...PHENOMENON_DEFAULT];
+}
+function savePhenomenonList() {
+  localStorage.setItem('anomaly_phenomenon_list', JSON.stringify(PHENOMENON_LIST));
+}
+
+// 入力ステート
+let workerQrFailCount = 0;
+const WORKER_QR_FAIL_LIMIT = 3;
+let SESSION = {
+  workerQrNo: '', workerName: '', workerCategory: '',
+  itemCode: '', itemName: '', custPartNo: '', maker: '',
+  selectedDueDate: '', workOrderNo: '', orderQty: '',
+  reportType: '', selectedPackings: [],
+  phenomenon: '', phenomenonOther: '',
+  tagId: '',
+};
+
+let DETAIL_TARGET_ID = null; // 詳細モーダル対象
+
+// 自動更新タイマー
+let syncTimer = null;
+
+// ══════════════════════════════════════════
+// 初期化
+// ══════════════════════════════════════════
+async function initApp() {
+  document.getElementById('loading-retry-btn').style.display = 'none';
+  applyLang(LANG);
+
+  // GAS URL 未設定 → セットアップ画面を表示して停止
+  if (!GAS_URL) {
+    document.getElementById('setup-screen').classList.add('active');
+    return;
+  }
+
+  showLoading('マスタ取得中...');
+  try {
+    const result = await gasGet('getAnomalyMaster');
+    if (!result.ok) throw new Error(result.error || 'マスタ取得失敗');
+    applyMaster(result);
+    hideLoading();
+    setupAutoSync();
+  } catch(e) {
+    hideLoading();
+    document.getElementById('loading-msg').textContent = 'マスタ取得に失敗しました: ' + e.message;
+    document.getElementById('loading-retry-btn').style.display = 'inline-block';
+    showLoading();
+  }
+}
+
+// セットアップ画面「保存して接続」
+async function onSetupSave() {
+  const url = document.getElementById('setup-gas-url').value.trim();
+  const errEl = document.getElementById('setup-err');
+  if (!url || !url.startsWith('https://')) {
+    errEl.textContent = 'https:// から始まる URL を入力してください';
+    return;
+  }
+  errEl.textContent = '';
+  GAS_URL = url;
+  localStorage.setItem('anomaly_gas_url', url);
+
+  // 接続確認
+  document.getElementById('setup-screen').classList.remove('active');
+  showLoading('接続確認中...');
+  try {
+    const result = await gasGet('getAnomalyMaster');
+    if (!result.ok) throw new Error(result.error || 'マスタ取得失敗');
+    applyMaster(result);
+    hideLoading();
+    setupAutoSync();
+    showToast('✓ 接続完了・マスタを取得しました', 'success');
+  } catch(e) {
+    hideLoading();
+    GAS_URL = '';
+    localStorage.removeItem('anomaly_gas_url');
+    const errMsg = 'GAS への接続に失敗しました: ' + e.message;
+    document.getElementById('setup-gas-url').value = url;
+    document.getElementById('setup-err').textContent = errMsg;
+    document.getElementById('setup-screen').classList.add('active');
+  }
+}
+
+function applyMaster(result) {
+  // 基幹マスタ
+  MASTER_ITEMS.clear();
+  (result.masterItems || []).forEach(m => MASTER_ITEMS.set(String(m.itemCode || ''), m));
+
+  // 作業依頼書 (GASシートヘッダーはPascalCase: ItemCode/WorkOrderNo/DueDate)
+  // ItemCode / SupplyItemCode / custPartNo（基幹マスタ逆引き）でインデックス
+  WORK_ORDERS_MAP.clear();
+  (result.workOrders || []).forEach(wo => {
+    const itemCode   = String(wo.ItemCode       || wo.itemCode       || '').trim();
+    const supplyCode = String(wo.SupplyItemCode  || wo.supplyItemCode  || '').trim();
+    // 基幹マスタから itemCode に対応する custPartNo を逆引きしてキーに追加
+    const masterEntry = MASTER_ITEMS.get(itemCode);
+    const custPartNo  = masterEntry ? String(masterEntry.custPartNo || '').trim() : '';
+    // キーは小文字正規化して SESSION.itemCode（小文字）と一致させる
+    [itemCode, supplyCode, custPartNo].filter(Boolean).forEach(k => {
+      if (!WORK_ORDERS_MAP.has(k)) WORK_ORDERS_MAP.set(k, []);
+      WORK_ORDERS_MAP.get(k).push(wo);
+      // 小文字キーでも登録（SESSION.itemCode は小文字のため）
+      const kl = k.toLowerCase();
+      if (kl !== k) {
+        if (!WORK_ORDERS_MAP.has(kl)) WORK_ORDERS_MAP.set(kl, []);
+        WORK_ORDERS_MAP.get(kl).push(wo);
+      }
+    });
+  });
+
+  // 在庫（TagID→受入日 検索用）
+  INVENTORY_MAP.clear();
+  (result.inventory || []).forEach(r => {
+    const tid = String(r.tagId || '').trim();
+    if (tid) INVENTORY_MAP.set(tid, { receiptDate: String(r.receiptDate || '') });
+  });
+
+  // 作業者マスタ
+  WORKERS_MAP.clear();
+  (result.workers || []).forEach(w => {
+    const key = String(w.employeeQrNo || w.empNo || '');
+    if (key) WORKERS_MAP.set(key, w);
+  });
+
+  // roleSettings
+  ROLE_SETTINGS_MAP.clear();
+  ROLE_SETTINGS_LIST = result.roleSettings || [];
+  ROLE_SETTINGS_LIST.forEach(r => ROLE_SETTINGS_MAP.set(String(r.employeeQrNo || ''), r.role));
+
+  const now = new Date().toLocaleTimeString('ja-JP', {hour:'2-digit',minute:'2-digit'});
+  document.getElementById('sync-status').textContent = '更新: ' + now;
+
+  // WMS連携：マスタ取得完了後に自動ログイン試行
+  tryWmsAutoLogin();
+}
+
+function setupAutoSync() {
+  if (syncTimer) clearInterval(syncTimer);
+  syncTimer = setInterval(() => syncMaster(false), 15 * 60 * 1000);
+}
+
+async function syncMaster(manual = false) {
+  if (!GAS_URL) return;
+  try {
+    const result = await gasGet('getAnomalyMaster');
+    if (result.ok) {
+      applyMaster(result);
+      if (manual) showToast('✓ マスタを更新しました', 'success');
+    }
+  } catch(e) {
+    if (manual) showToast('更新失敗: ' + e.message, 'error');
+  }
+}
+
+// ══════════════════════════════════════════
+// タブ切り替え
+// ══════════════════════════════════════════
+function switchTab(tab) {
+  CURRENT_TAB = tab;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('sc-' + tab).classList.add('active');
+  if (tab === 'history') loadHistory();
+  if (tab === 'settings') renderSettingsScreen();
+}
+
+// ══════════════════════════════════════════
+// STEP ナビゲーション
+// ══════════════════════════════════════════
+function gotoStep(n) {
+  for (let i = 1; i <= 4; i++) {
+    const el = document.getElementById('step' + i);
+    if (el) el.style.display = i === n ? 'block' : 'none';
+  }
+  updateStepNav(n);
+  window.scrollTo(0, 0);
+  if (n === 4) fillStep4();
+  // ステップ切替時に手動入力モードをリセット
+  if (n !== 2 && manualInputMode) {
+    manualInputMode = false;
+    const btn = document.getElementById('manual-input-toggle-btn');
+    const badge = document.getElementById('manual-input-mode-badge');
+    const inp = document.getElementById('item-scan-inp');
+    if (btn) { btn.className = 'btn btn-ghost btn-sm'; btn.textContent = '✏️ 手入力'; }
+    if (badge) badge.style.display = 'none';
+    if (inp) { inp.placeholder = 'スキャン待機中'; inp.value = ''; inp.onkeydown = null; }
+  }
+  // ③ ステップ移動後にスキャン入力にフォーカス
+  setTimeout(() => focusScanInput(), 150);
+}
+
+// ③ 現在のステップに応じてスキャン入力にフォーカス
+// manualInputMode=true の間はフォーカス自動復帰をスキップ
+let manualInputMode = false;
+function focusScanInput() {
+  if (manualInputMode) return;
+  const step1 = document.getElementById('step1');
+  const step2 = document.getElementById('step2');
+  if (step1 && step1.style.display !== 'none') {
+    const inp = document.getElementById('worker-qr-inp');
+    if (inp) inp.focus({ preventScroll: true });
+  } else if (step2 && step2.style.display !== 'none') {
+    const inp = document.getElementById('item-scan-inp');
+    if (inp) inp.focus({ preventScroll: true });
+  }
+}
+
+function updateStepNav(active) {
+  for (let i = 1; i <= 4; i++) {
+    const dot = document.getElementById('sn' + i);
+    const line = document.getElementById('sl' + i);
+    if (i < active) { dot.className = 'sn-dot done'; if(line) line.className='sn-line done'; }
+    else if (i === active) { dot.className = 'sn-dot active'; }
+    else { dot.className = 'sn-dot pending'; if(line) line.className='sn-line'; }
+  }
+}
+
+// ══════════════════════════════════════════
+// STEP 1: 作業者確認
+// ══════════════════════════════════════════
+let workerQrTimer = null;
+function onWorkerQrInput(val) {
+  clearTimeout(workerQrTimer);
+  workerQrTimer = setTimeout(() => resolveWorkerQr(val.trim()), 400);
+}
+
+function resolveWorkerQr(qr) {
+  if (!qr) return;
+  const worker = WORKERS_MAP.get(qr);
+  if (worker) {
+    setWorkerFound(qr, worker.name || worker.employeeQrNo || qr, worker.category || '');
+    document.getElementById('worker-qr-inp').value = '';
+  } else {
+    workerQrFailCount++;
+    showToast(`QRコード "${qr}" が見つかりません (${workerQrFailCount}/${WORKER_QR_FAIL_LIMIT})`, 'error');
+    document.getElementById('worker-qr-inp').value = '';
+    if (workerQrFailCount >= WORKER_QR_FAIL_LIMIT) {
+      showWorkerManual();
+    }
+  }
+}
+
+function setWorkerFound(qrNo, name, category) {
+  SESSION.workerQrNo = qrNo;
+  SESSION.workerName = name;
+  SESSION.workerCategory = category;
+
+  // ─── ロール判定 ───────────────────────────────
+  // viewer: WMSの "HK" はじまりアカウント（作業者マスタ未登録 or role='viewer'）
+  // admin_role → '__priv__'  kanri → 'kanri'  viewer → 'viewer'  その他 → 'operator'
+  const rawRole = ROLE_SETTINGS_MAP.get(qrNo) || 'operator';
+  if (rawRole === 'viewer' || (qrNo.toUpperCase().startsWith('HK') && rawRole === 'operator' && !WORKERS_MAP.has(qrNo))) {
+    ROLE = 'viewer';
+  } else if (rawRole === 'admin_role') {
+    ROLE = '__priv__';
+  } else {
+    ROLE = rawRole; // 'kanri' or 'operator'
+  }
+
+  document.getElementById('wi-name').textContent = name;
+  document.getElementById('wi-category').textContent = '';
+  document.getElementById('worker-info-panel').classList.add('active');
+  document.getElementById('step1-next-btn').disabled = false;
+
+  // ダークテーマは administrator のみ
+  document.body.classList.toggle('dark-theme', ROLE === '__priv__');
+
+  // ─── タブ表示制御 ─────────────────────────────
+  // operator : 報告のみ
+  // kanri    : 報告 + 履歴
+  // __priv__ : 報告 + 履歴 + 設定
+  // viewer   : 履歴のみ
+  const tabReport   = document.querySelector('.tab-btn[data-tab="report"]');
+  const tabHistory  = document.querySelector('.tab-btn[data-tab="history"]');
+  const tabSettings = document.querySelector('.tab-btn[data-tab="settings"]');
+  if (tabReport)   tabReport.style.display   = (ROLE === 'viewer') ? 'none' : '';
+  if (tabHistory)  tabHistory.style.display  = (ROLE === 'operator') ? 'none' : '';
+  if (tabSettings) tabSettings.style.display = (ROLE === '__priv__') ? '' : 'none';
+
+  // viewer はログイン直後に履歴タブへ切替
+  if (ROLE === 'viewer') {
+    switchTab('history');
+  }
+
+  // 履歴Excel出力ボタン
+  const xlsxBtn = document.getElementById('xlsx-export-btn');
+  if (xlsxBtn) xlsxBtn.hidden = (ROLE === 'operator' || ROLE === 'viewer');
+
+  // 事象管理セクション（administrator のみ）
+  const phenSec = document.getElementById('phenomenon-settings-section');
+  if (phenSec) phenSec.style.display = ROLE === '__priv__' ? 'block' : 'none';
+
+  // 事象ボタン再描画（ログイン後に確定）
+  renderPhenomenonOpts();
+  renderEditPhenomenonSelect();
+
+  showToast('✓ ' + name, 'success');
+}
+
+function showWorkerManual() {
+  const sel = document.getElementById('worker-manual-sel');
+  sel.innerHTML = `<option value="">-- 選択 --</option>`;
+  WORKERS_MAP.forEach((w, qrNo) => {
+    const opt = document.createElement('option');
+    opt.value = qrNo;
+    opt.textContent = (w.name || qrNo);
+    sel.appendChild(opt);
+  });
+  document.getElementById('worker-manual').style.display = 'block';
+}
+
+function onWorkerManualSelect(qrNo) {
+  if (!qrNo) return;
+  const worker = WORKERS_MAP.get(qrNo);
+  if (worker) setWorkerFound(qrNo, worker.name || qrNo, worker.category || '');
+}
+
+// ══════════════════════════════════════════
+// STEP 2: 依頼書読取
+// ══════════════════════════════════════════
+
+// ─── WMSと同一の基幹マスタ検索ユーティリティ ───
+function normItemCode(code) {
+  if (code === null || code === undefined) return code;
+  return String(code).replace(/\+\d+$/, '').trim();
+}
+function findMasterEntry(itemCode) {
+  if (!itemCode) return null;
+  const norm = normItemCode(itemCode);
+  const items = Array.from(MASTER_ITEMS.values());
+  let m = items.find(x => x.itemCode === itemCode);
+  if (m) return m;
+  m = items.find(x => x.custPartNo && x.custPartNo === itemCode);
+  if (m) return m;
+  m = items.find(x => normItemCode(x.itemCode) === norm);
+  if (m) return m;
+  m = items.find(x => x.custPartNo && normItemCode(x.custPartNo) === norm);
+  if (m) return m;
+  m = items.find(x => x.custPartNo && normItemCode(x.custPartNo).startsWith(norm + '-'));
+  return m || null;
+}
+function resolveItemCode(code) {
+  if (!code) return code;
+  const master = findMasterEntry(code);
+  return (master && master.itemCode) ? master.itemCode : code;
+}
+
+let itemScanTimer = null;
+function onItemScanInput(val) {
+  // 手動入力モード中は入力値をそのまま維持（Enterキーで確定）
+  if (manualInputMode) return;
+  clearTimeout(itemScanTimer);
+  itemScanTimer = setTimeout(() => resolveItemScan(val.trim()), 400);
+}
+
+// 手動入力モード切替
+function toggleManualInputMode() {
+  manualInputMode = !manualInputMode;
+  const btn = document.getElementById('manual-input-toggle-btn');
+  const badge = document.getElementById('manual-input-mode-badge');
+  const inp = document.getElementById('item-scan-inp');
+  if (manualInputMode) {
+    btn.className = 'btn btn-warning btn-sm';
+    btn.textContent = '✏️ 手入力中';
+    if (badge) badge.style.display = 'block';
+    if (inp) {
+      inp.placeholder = '品番を入力してEnterで確定';
+      inp.value = '';
+      inp.focus({ preventScroll: true });
+      // Enterキーで確定
+      inp.onkeydown = (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          const v = inp.value.trim();
+          if (v) resolveItemScan(v);
+        }
+      };
+    }
+  } else {
+    btn.className = 'btn btn-ghost btn-sm';
+    btn.textContent = '✏️ 手入力';
+    if (badge) badge.style.display = 'none';
+    if (inp) {
+      inp.placeholder = 'スキャン待機中';
+      inp.value = '';
+      inp.onkeydown = null;
+    }
+  }
+}
+
+function resolveItemScan(code) {
+  if (!code) return;
+  document.getElementById('item-scan-inp').value = '';
+
+  // ── 基幹マスタ検索（findMasterEntryによる5段階マッチ） ──
+  const masterItem = findMasterEntry(code);
+  if (!masterItem) {
+    showToast(`品番 "${code}" が基幹マスタに見つかりません`, 'error');
+    return;
+  }
+
+  SESSION.itemCode = String(masterItem.itemCode || '');
+  SESSION.itemName = String(masterItem.itemName || '');
+  SESSION.custPartNo = String(masterItem.custPartNo || '');
+  SESSION.maker = String(masterItem.makerName || '');
+
+  document.getElementById('ii-code').textContent = SESSION.itemCode;
+  document.getElementById('ii-name').textContent = SESSION.itemName;
+  document.getElementById('ii-maker').textContent = SESSION.maker;
+  document.getElementById('ii-custpart').textContent = SESSION.custPartNo;
+  document.getElementById('item-info-panel').classList.add('active');
+
+  // ── 作業依頼書検索（WMSと同一の正規化＋前方一致マッチ） ──
+  const normCode = normItemCode(code);
+  const resolved = resolveItemCode(code);
+  const normResolved = normItemCode(resolved);
+  function custPrefixMatch(custPartNo, scanCode) {
+    if (!custPartNo || !scanCode) return false;
+    return normItemCode(custPartNo).startsWith(normItemCode(scanCode) + '-');
+  }
+  const codesFromMaster = [];
+  Array.from(MASTER_ITEMS.values()).forEach(m => {
+    const matchCust = m.custPartNo && (
+      m.custPartNo === code || normItemCode(m.custPartNo) === normCode || custPrefixMatch(m.custPartNo, code));
+    const matchSupply = m.supplyCode1 && (
+      m.supplyCode1 === code || normItemCode(m.supplyCode1) === normCode);
+    if (matchCust || matchSupply) {
+      if (m.itemCode && codesFromMaster.indexOf(m.itemCode) === -1) codesFromMaster.push(m.itemCode);
+      if (m.itemCode && codesFromMaster.indexOf(normItemCode(m.itemCode)) === -1) codesFromMaster.push(normItemCode(m.itemCode));
+    }
+  });
+  const allWorkOrders = [];
+  WORK_ORDERS_MAP.forEach(arr => arr.forEach(wo => {
+    if (!allWorkOrders.find(x => x.WorkOrderNo === wo.WorkOrderNo)) allWorkOrders.push(wo);
+  }));
+  let matchOrders = allWorkOrders.filter(o => {
+    if (o.status && o.status === '完了') return false;
+    const oCode = String(o.ItemCode || o.itemCode || '');
+    const oSupply = String(o.SupplyItemCode || o.supplyItemCode || '');
+    if (oCode === code || oSupply === code) return true;
+    if (normItemCode(oCode) === normCode || normItemCode(oSupply) === normCode) return true;
+    if (oCode === resolved || oSupply === resolved) return true;
+    if (normItemCode(oCode) === normResolved || normItemCode(oSupply) === normResolved) return true;
+    if (codesFromMaster.indexOf(oCode) !== -1 || codesFromMaster.indexOf(oSupply) !== -1) return true;
+    if (codesFromMaster.indexOf(normItemCode(oCode)) !== -1 || codesFromMaster.indexOf(normItemCode(oSupply)) !== -1) return true;
+    return false;
+  });
+
+  const dueDateSection = document.getElementById('duedate-section');
+  const dueDateList = document.getElementById('duedate-list');
+
+  if (matchOrders.length === 0) {
+    // 作業依頼書なし → 手入力で続行
+    SESSION.workOrderNo = '';
+    SESSION.selectedDueDate = '';
+    dueDateSection.style.display = 'none';
+    document.getElementById('step2-next-btn').disabled = false;
+    showToast('作業依頼書が見つかりません。入力して続行します。', 'warning');
+  } else if (matchOrders.length === 1) {
+    selectWorkOrder(matchOrders[0]);
+    dueDateSection.style.display = 'none';
+    document.getElementById('step2-next-btn').disabled = false;
+  } else {
+    // 複数 → 選択UI
+    SESSION.workOrderNo = '';
+    SESSION.selectedDueDate = '';
+    dueDateSection.style.display = 'block';
+    dueDateList.innerHTML = matchOrders.map(wo => `
+      <div class="duedate-opt" tabindex="-1" onclick="selectWorkOrder(${JSON.stringify(wo).replace(/"/g,'&quot;')}, this)">
+        📅 ${isoToDateStr(wo.DueDate) || '—'}　　No. ${wo.WorkOrderNo || '—'}　　Qty: ${wo.OrderQty || '—'}
+      </div>
+    `).join('');
+    document.getElementById('step2-next-btn').disabled = true;
+    showToast('納期が複数あります。選択してください。', 'info');
+  }
+}
+
+function selectWorkOrder(wo, el) {
+  SESSION.workOrderNo = String(wo.WorkOrderNo || '');
+  SESSION.selectedDueDate = isoToDateStr(wo.DueDate || '');
+  SESSION.orderQty = wo.OrderQty ? String(wo.OrderQty) : '';
+  if (el) {
+    document.querySelectorAll('.duedate-opt').forEach(e => e.classList.remove('selected'));
+    el.classList.add('selected');
+  }
+  document.getElementById('step2-next-btn').disabled = false;
+  showToast('✓ 納期: ' + (SESSION.selectedDueDate || '—'), 'success', 2000);
+}
+
+// ══════════════════════════════════════════
+// STEP 3: 報告種別
+// ══════════════════════════════════════════
+function selectReportType(type) {
+  SESSION.reportType = type;
+  SESSION.selectedPackings = [];
+
+  document.getElementById('type-parts').className = 'type-btn' + (type === '部品' ? ' selected-parts' : '');
+  document.getElementById('type-packing').className = 'type-btn' + (type === '包材' ? ' selected-packing' : '');
+
+  const packingWrap = document.getElementById('packing-list-wrap');
+  const partsWrap = document.getElementById('parts-list-wrap');
+
+  if (type === '包材') {
+    packingWrap.style.display = 'block';
+    buildPackingList();
+    partsWrap.style.display = 'none';
+    document.getElementById('step3-next-btn').disabled = false;
+    // 包材はTagID不要 → グレーアウト
+    const tagIdInp = document.getElementById('f-tagid');
+    const tagIdNoneBtn = document.getElementById('f-tagid-none-btn');
+    if (tagIdInp) { tagIdInp.disabled = true; tagIdInp.style.opacity = '0.45'; tagIdInp.style.cursor = 'not-allowed'; }
+    if (tagIdNoneBtn) { tagIdNoneBtn.disabled = true; tagIdNoneBtn.style.opacity = '0.45'; }
+  } else if (type === '部品') {
+    packingWrap.style.display = 'none';
+    partsWrap.style.display = 'block';
+    buildPartsList();
+    // 部品は必ず1つ以上選択させる
+    document.getElementById('step3-next-btn').disabled = true;
+    // TagID 有効に戻す
+    const tagIdInp = document.getElementById('f-tagid');
+    const tagIdNoneBtn = document.getElementById('f-tagid-none-btn');
+    if (tagIdInp) { tagIdInp.disabled = false; tagIdInp.style.opacity = ''; tagIdInp.style.cursor = ''; }
+    if (tagIdNoneBtn) { tagIdNoneBtn.disabled = false; tagIdNoneBtn.style.opacity = ''; }
+  } else {
+    packingWrap.style.display = 'none';
+    partsWrap.style.display = 'none';
+    document.getElementById('step3-next-btn').disabled = false;
+    // TagID 有効に戻す
+    const tagIdInp = document.getElementById('f-tagid');
+    const tagIdNoneBtn = document.getElementById('f-tagid-none-btn');
+    if (tagIdInp) { tagIdInp.disabled = false; tagIdInp.style.opacity = ''; tagIdInp.style.cursor = ''; }
+    if (tagIdNoneBtn) { tagIdNoneBtn.disabled = false; tagIdNoneBtn.style.opacity = ''; }
+  }
+
+  // 包材選択時は状況詳細を任意に（必須マーク非表示）
+  const situationReq = document.getElementById('situation-req');
+  if (situationReq) {
+    situationReq.style.display = type === '包材' ? 'none' : '';
+  }
+}
+
+function buildPartsList() {
+  const masterItem = MASTER_ITEMS.get(SESSION.itemCode);
+  const list = document.getElementById('parts-list');
+
+  let parts = [];
+
+  if (masterItem) {
+    // ── ① supplyListJson から構成部品を取得（優先）──
+    const raw = masterItem.supplyListJson;
+    if (raw && String(raw).trim() !== '') {
+      try {
+        const parsed = JSON.parse(String(raw));
+        if (Array.isArray(parsed)) {
+          parsed.forEach(function(item) {
+            if (!item) return;
+            // キー名のブレに対応: code/itemCode/supplyCode/Code など
+            const code = String(
+              item.code || item.itemCode || item.supplyCode || item.supplyItemCode ||
+              item.Code || item.ItemCode || item.partCode || ''
+            ).trim();
+            // name/itemName/supplyName/Name など
+            const name = String(
+              item.name || item.itemName || item.supplyName || item.Name || item.ItemName || ''
+            ).trim();
+            if (code) parts.push({ code, name });
+          });
+        }
+      } catch(e) {
+        // JSONパース失敗: カンマ区切り文字列としてフォールバック
+        String(raw).split(/[,\n]/).map(s => s.trim()).filter(Boolean).forEach(function(s) {
+          parts.push({ code: s, name: '' });
+        });
+      }
+    }
+
+    // ── ② supplyListJsonが空の場合: supply1Code～supply14Codeから構築 ──
+    if (parts.length === 0) {
+      for (let i = 1; i <= 14; i++) {
+        const code = String(masterItem['supply' + i + 'Code'] || '').trim();
+        const name = String(masterItem['supply' + i + 'Name'] || '').trim();
+        if (code) parts.push({ code, name });
+      }
+    }
+  }
+
+  if (parts.length === 0) {
+    list.innerHTML = `<div style="font-size:18px;color:var(--text3);padding:8px;">
+      構成部品データがありません（supplyListJson・supply1Code〜14Code ともに未設定）
+    </div>`;
+    document.getElementById('step3-next-btn').disabled = true;
+    return;
+  }
+
+  list.innerHTML = parts.map(p => {
+    const display = p.name ? `${p.code}　${p.name}` : p.code;
+    // onclick用のエスケープ（シングルクォート・バックスラッシュ対策）
+    const valEsc = display.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    return `<div class="packing-chk" onclick="togglePart(this,'${valEsc}')">${display}</div>`;
+  }).join('');
+}
+
+function togglePart(el, val) {
+  el.classList.toggle('checked');
+  if (el.classList.contains('checked')) {
+    if (!SESSION.selectedPackings.includes(val)) SESSION.selectedPackings.push(val);
+  } else {
+    SESSION.selectedPackings = SESSION.selectedPackings.filter(v => v !== val);
+  }
+  // 1件以上選択で次へボタン活性化
+  document.getElementById('step3-next-btn').disabled = SESSION.selectedPackings.length === 0;
+}
+
+function buildPackingList() {
+  const masterItem = MASTER_ITEMS.get(SESSION.itemCode);
+  // supply* 列は部品情報のため除外。包材専用列のみ対象
+  const packingCols = [
+    'innerMat1','innerMat2','innerMat3','innerMat4','innerMat5','innerMat6','innerMat7','innerMat8',
+    'midSheet1Mat1','midSheet1Mat2','midSheet1Mat3','midSheet1Mat4','midSheet1Mat5',
+    'midSheet2Mat1','midSheet2Mat2','midSheet2Mat3','midSheet2Mat4','midSheet2Mat5',
+    'outerMat1','outerMat2','outerMat3','outerMat4','outerMat5','outerMat6','outerMat7','outerMat8',
+  ];
+  const values = new Set();
+  if (masterItem) {
+    packingCols.forEach(col => {
+      const v = String(masterItem[col] || '').trim();
+      if (v) values.add(v);
+    });
+  }
+
+  const list = document.getElementById('packing-list');
+  if (values.size === 0) {
+    list.innerHTML = '<div style="font-size:18px;color:var(--text3);">包材データがありません</div>';
+  } else {
+    list.innerHTML = [...values].map(v => `
+      <div class="packing-chk" onclick="togglePacking(this,'${v.replace(/'/g,"\\'")}')">
+        ${v}
+      </div>
+    `).join('');
+  }
+}
+
+function togglePacking(el, val) {
+  el.classList.toggle('checked');
+  if (el.classList.contains('checked')) {
+    if (!SESSION.selectedPackings.includes(val)) SESSION.selectedPackings.push(val);
+  } else {
+    SESSION.selectedPackings = SESSION.selectedPackings.filter(v => v !== val);
+  }
+}
+
+// ══════════════════════════════════════════
+// STEP 4: 報告入力
+// ══════════════════════════════════════════
+function fillStep4() {
+  // readonly フィールドに値をセット
+  setValue('f-reporter', SESSION.workerName);
+  setValue('f-item-code', SESSION.itemCode);
+  setValue('f-item-name', SESSION.itemName);
+  setValue('f-report-type', SESSION.reportType);
+  setValue('f-supply-date', SESSION.selectedDueDate);
+  setValue('f-work-order', SESSION.workOrderNo);
+
+  if (SESSION.reportType === '包材' && SESSION.selectedPackings.length > 0) {
+    document.getElementById('f-packing-marks-group').style.display = 'block';
+    setValue('f-packing-marks', SESSION.selectedPackings.join(', '));
+  } else if (SESSION.reportType === '部品' && SESSION.selectedPackings.length > 0) {
+    document.getElementById('f-packing-marks-group').style.display = 'block';
+    setValue('f-packing-marks', SESSION.selectedPackings.join(', '));
+    document.querySelector('label[for="f-packing-marks"], #f-packing-marks-group .form-label') && 
+      (document.querySelector('#f-packing-marks-group .form-label').textContent = '対象部品');
+  } else {
+    document.getElementById('f-packing-marks-group').style.display = 'none';
+  }
+
+  // ROKI 欄の表示制御 (administrator のみ)
+  const rokiSection = document.getElementById('roki-section');
+  rokiSection.style.display = ROLE === '__priv__' ? 'block' : 'none';
+
+  // TagID リセット
+  SESSION.tagId = '';
+  document.getElementById('f-tagid').value = '';
+  document.getElementById('f-tagid-display').textContent = '';
+  const noneBtn = document.getElementById('f-tagid-none-btn');
+  if (noneBtn) { noneBtn.className = 'btn btn-ghost'; }
+
+  // 包材選択時はTagIDグレーアウト（入力不要）
+  const tagIdInp = document.getElementById('f-tagid');
+  const tagIdNoneBtn2 = document.getElementById('f-tagid-none-btn');
+  const isPacking = SESSION.reportType === '包材';
+  if (tagIdInp) { tagIdInp.disabled = isPacking; tagIdInp.style.opacity = isPacking ? '0.45' : ''; tagIdInp.style.cursor = isPacking ? 'not-allowed' : ''; }
+  if (tagIdNoneBtn2) { tagIdNoneBtn2.disabled = isPacking; tagIdNoneBtn2.style.opacity = isPacking ? '0.45' : ''; }
+
+  // 事象リセット
+  document.querySelectorAll('.ph-opt').forEach(e => e.classList.remove('selected'));
+  SESSION.phenomenon = '';
+  document.getElementById('f-phenomenon-other').style.display = 'none';
+  document.getElementById('f-situation').value = '';
+
+  // ⑦ 数量: 作業依頼書のOrderQtyを初期値にセット（変更可）
+  const deliveryInp = document.getElementById('f-delivery-date');
+  const defectQtyInp = document.getElementById('f-defect-qty');
+
+  // ⑥ 納期: 作業依頼書DueDateを自動入力（readonly）
+  if (SESSION.selectedDueDate) {
+    try {
+      const isoMatch = SESSION.selectedDueDate.match(/^(\d{4}-\d{2}-\d{2})/);
+      deliveryInp.value = isoMatch ? isoMatch[1] : SESSION.selectedDueDate;
+    } catch(_) {
+      deliveryInp.value = SESSION.selectedDueDate;
+    }
+    deliveryInp.readOnly = true;
+    deliveryInp.classList.add('auto-filled-date');
+  } else {
+    deliveryInp.value = '';
+    deliveryInp.readOnly = false;
+    deliveryInp.classList.remove('auto-filled-date');
+  }
+
+  // ⑦ 数量: SESSIONに格納済みのorderQtyをデフォルト値として設定
+  if (SESSION.orderQty && Number(SESSION.orderQty) > 0) {
+    defectQtyInp.value = SESSION.orderQty;
+  } else {
+    defectQtyInp.value = '';
+  }
+  defectQtyInp.readOnly = false; // 常に変更可
+}
+
+function setValue(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.value = val || '';
+}
+
+// ══════════════════════════════════════════
+// 事象リスト描画・管理
+// ══════════════════════════════════════════
+function renderPhenomenonOpts() {
+  const wrap = document.getElementById('phenomenon-opts');
+  if (!wrap) return;
+  wrap.innerHTML = PHENOMENON_LIST.map(p =>
+    `<div class="ph-opt" onclick="selectPhenomenon('${p.replace(/'/g,"&#39;")}')" data-val="${p}">${p}</div>`
+  ).join('');
+  // 選択状態を復元
+  if (SESSION.phenomenon) {
+    wrap.querySelectorAll('.ph-opt').forEach(e => {
+      e.classList.toggle('selected', e.dataset.val === SESSION.phenomenon);
+    });
+  }
+}
+
+function renderEditPhenomenonSelect() {
+  const sel = document.getElementById('edit-phenomenon');
+  if (!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = PHENOMENON_LIST.map(p =>
+    `<option value="${p}">${p}</option>`
+  ).join('');
+  if (cur && PHENOMENON_LIST.includes(cur)) sel.value = cur;
+}
+
+function renderPhenomenonSettingsList() {
+  const wrap = document.getElementById('phenomenon-list-wrap');
+  if (!wrap) return;
+  wrap.innerHTML = PHENOMENON_LIST.map((p, i) => `
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);">
+      <span style="flex:1;font-size:18px;">${p}</span>
+      ${PHENOMENON_DEFAULT.includes(p)
+        ? '<span style="font-size:13px;color:var(--text3);">（デフォルト）</span>'
+        : `<button class="btn btn-danger btn-sm" onclick="removePhenomenonItem(${i})">削除</button>`}
+    </div>`).join('');
+}
+
+function addPhenomenonItem() {
+  const inp = document.getElementById('new-phenomenon-inp');
+  const val = (inp.value || '').trim();
+  if (!val) { showToast('事象名を入力してください', 'error'); return; }
+  if (PHENOMENON_LIST.includes(val)) { showToast('既に存在する事象です', 'warning'); return; }
+  // 「その他」の直前に挿入
+  const otherIdx = PHENOMENON_LIST.indexOf('その他');
+  if (otherIdx >= 0) PHENOMENON_LIST.splice(otherIdx, 0, val);
+  else PHENOMENON_LIST.push(val);
+  savePhenomenonList();
+  inp.value = '';
+  renderPhenomenonOpts();
+  renderEditPhenomenonSelect();
+  renderPhenomenonSettingsList();
+  showToast('✓ 追加しました: ' + val, 'success');
+}
+
+function removePhenomenonItem(idx) {
+  const val = PHENOMENON_LIST[idx];
+  if (PHENOMENON_DEFAULT.includes(val)) { showToast('デフォルト項目は削除できません', 'error'); return; }
+  PHENOMENON_LIST.splice(idx, 1);
+  savePhenomenonList();
+  renderPhenomenonOpts();
+  renderEditPhenomenonSelect();
+  renderPhenomenonSettingsList();
+  showToast('削除しました: ' + val, 'info');
+}
+
+function resetPhenomenonList() {
+  if (!confirm('事象リストをデフォルトに戻しますか？（追加した項目は削除されます）')) return;
+  PHENOMENON_LIST = [...PHENOMENON_DEFAULT];
+  savePhenomenonList();
+  renderPhenomenonOpts();
+  renderEditPhenomenonSelect();
+  renderPhenomenonSettingsList();
+  showToast('✓ デフォルトにリセットしました', 'info');
+}
+
+function selectPhenomenon(val) {
+  SESSION.phenomenon = val;
+  document.querySelectorAll('.ph-opt').forEach(e => {
+    e.classList.toggle('selected', e.dataset.val === val);
+  });
+  const otherInp = document.getElementById('f-phenomenon-other');
+  otherInp.style.display = val === 'その他' ? 'block' : 'none';
+  if (val !== 'その他') otherInp.value = '';
+}
+
+// ══════════════════════════════════════════
+// TagID バーコード入力
+// ══════════════════════════════════════════
+
+// GASから取得したINVENTORY_MAPでTagID→受入日を検索し、支給日フィールドに反映
+function applyReceiptDateFromTagId(tagId) {
+  const supplyInp = document.getElementById('f-supply-date');
+  if (!supplyInp) return;
+  const rec = INVENTORY_MAP.get(tagId);
+  if (rec && rec.receiptDate) {
+    // GAS修正によりreceiptDateはYYYY-MM-DD文字列で渡る
+    const isoMatch = String(rec.receiptDate).match(/^(\d{4}-\d{2}-\d{2})/);
+    supplyInp.value = isoMatch ? isoMatch[1] : String(rec.receiptDate);
+    showToast('✓ 受入日を支給日にセットしました（' + supplyInp.value + '）', 'info');
+  }
+}
+
+let tagIdTimer = null;
+function onTagIdInput(val) {
+  clearTimeout(tagIdTimer);
+  tagIdTimer = setTimeout(() => {
+    const trimmed = val.trim();
+    if (!trimmed) return;
+    SESSION.tagId = trimmed;
+    document.getElementById('f-tagid-display').textContent = '✓ TagID: ' + trimmed;
+    document.getElementById('f-tagid-none-btn').classList.remove('btn-ghost');
+    document.getElementById('f-tagid-none-btn').classList.add('btn-success');
+    // GAS在庫データから受入日を取得して支給日にセット
+    applyReceiptDateFromTagId(trimmed);
+  }, 400);
+}
+function setTagIdNone() {
+  SESSION.tagId = '無し';
+  document.getElementById('f-tagid').value = '';
+  document.getElementById('f-tagid-display').textContent = '✓ 無し（TagID不要）';
+  document.getElementById('f-tagid-none-btn').classList.remove('btn-ghost');
+  document.getElementById('f-tagid-none-btn').classList.add('btn-warning');
+}
+
+async function submitReport() {
+  // バリデーション
+  if (!SESSION.workerName) { showToast('作業者が未設定です', 'error'); return; }
+  if (!SESSION.itemCode) { showToast('品番が未設定です', 'error'); return; }
+  if (!SESSION.reportType) { showToast('報告種別を選択してください', 'error'); return; }
+  if (!SESSION.phenomenon) { showToast('事象を選択してください', 'error'); return; }
+  if (SESSION.phenomenon === 'その他' && !document.getElementById('f-phenomenon-other').value.trim()) {
+    showToast('その他の内容を入力してください', 'error'); return;
+  }
+  const situation = document.getElementById('f-situation').value.trim();
+  // 包材の場合は状況詳細を任意とする
+  if (!situation && SESSION.reportType !== '包材') { showToast('状況詳細を入力してください', 'error'); return; }
+  const defectQty = document.getElementById('f-defect-qty').value;
+  if (!defectQty || Number(defectQty) <= 0) { showToast('数量を正しく入力してください', 'error'); return; }
+
+  if (!GAS_URL) { showToast('GAS URLが未設定です', 'error'); return; }
+
+  const record = {
+    reportDate: toIsoDate(new Date()),
+    reporter: SESSION.workerName,
+    reportType: SESSION.reportType,
+    itemCode: SESSION.itemCode,
+    itemName: SESSION.itemName,
+    custPartNo: SESSION.custPartNo,
+    maker: SESSION.maker,
+    supplyDate: SESSION.selectedDueDate,
+    packingMarks: SESSION.selectedPackings.join(','),
+    phenomenon: SESSION.phenomenon,
+    phenomenonOther: SESSION.phenomenon === 'その他' ? document.getElementById('f-phenomenon-other').value.trim() : '',
+    situation: situation,
+    deliveryDate: document.getElementById('f-delivery-date').value || '',
+    defectQty: Number(defectQty),
+    workOrderNo: SESSION.workOrderNo,
+    terminal: navigator.userAgent.substring(0,20) || 'browser',
+    tagId: SESSION.tagId || '',
+  };
+
+  // administrator のみ ROKI 項目を付与。kanri・operator は「未」固定
+  if (ROLE === '__priv__') {
+    record.rokiReport = document.getElementById('f-roki-report').value;
+    record.rokiReportDate = document.getElementById('f-roki-date').value;
+    record._senderRole = 'privileged';
+  } else {
+    // kanri・operator・viewer いずれも ROKI は「未」で初期登録
+    record.rokiReport = '未';
+  }
+
+  showLoading('送信中...');
+  const submsgEl = document.getElementById('loading-submsg');
+  if (submsgEl) submsgEl.style.display = 'block';
+  try {
+    const result = await gasPost('recordAnomaly', record);
+    if (!result.ok) throw new Error(result.error || '送信失敗');
+    if (submsgEl) submsgEl.style.display = 'none';
+    hideLoading();
+    showToast('✓ 報告を送信しました (ID: ' + result.reportId + ')', 'success', 5000);
+    resetReportForm();
+  } catch(e) {
+    if (submsgEl) submsgEl.style.display = 'none';
+    hideLoading();
+    showToast('送信エラー: ' + e.message, 'error');
+  }
+}
+
+function resetReportForm() {
+  // ─── SESSION 完全リセット（キャッシュ開放）───────────────────
+  SESSION.workerQrNo = '';
+  SESSION.workerName = '';
+  SESSION.workerCategory = '';
+  SESSION.reportType = '';
+  SESSION.selectedPackings = [];
+  SESSION.phenomenon = '';
+  SESSION.phenomenonOther = '';
+  SESSION.tagId = '';
+  SESSION.itemCode = '';
+  SESSION.itemName = '';
+  SESSION.custPartNo = '';
+  SESSION.maker = '';
+  SESSION.selectedDueDate = '';
+  SESSION.workOrderNo = '';
+  SESSION.orderQty = '';
+  workerQrFailCount = 0;
+
+  // ROLE リセット
+  ROLE = 'operator';
+
+  // STEP1へ戻る
+  gotoStep(1);
+  document.getElementById('worker-qr-inp').value = '';
+  document.getElementById('worker-info-panel').classList.remove('active');
+  document.getElementById('step1-next-btn').disabled = true;
+  document.getElementById('item-info-panel').classList.remove('active');
+  document.getElementById('item-scan-inp').value = '';
+  document.getElementById('step2-next-btn').disabled = true;
+  document.getElementById('worker-manual').style.display = 'none';
+
+  // ダークテーマリセット
+  document.body.classList.remove('dark-theme');
+
+  // タブ表示を初期状態（未ログイン）に戻す
+  // → 報告タブのみ表示、履歴・設定は非表示
+  const tabReport   = document.querySelector('.tab-btn[data-tab="report"]');
+  const tabHistory  = document.querySelector('.tab-btn[data-tab="history"]');
+  const tabSettings = document.querySelector('.tab-btn[data-tab="settings"]');
+  if (tabReport)   tabReport.style.display   = '';
+  if (tabHistory)  tabHistory.style.display  = 'none';
+  if (tabSettings) tabSettings.style.display = 'none';
+  // 報告タブをアクティブに
+  switchTab('report');
+
+  // 手動入力モードリセット
+  manualInputMode = false;
+  const toggleBtn = document.getElementById('manual-input-toggle-btn');
+  const modeBadge = document.getElementById('manual-input-mode-badge');
+  const scanInp = document.getElementById('item-scan-inp');
+  if (toggleBtn) { toggleBtn.className = 'btn btn-ghost btn-sm'; toggleBtn.textContent = '✏️ 手入力'; }
+  if (modeBadge) modeBadge.style.display = 'none';
+  if (scanInp) { scanInp.placeholder = 'スキャン待機中'; scanInp.onkeydown = null; }
+
+  // TagID グレーアウト解除
+  const tagIdInp = document.getElementById('f-tagid');
+  const tagIdNoneBtn = document.getElementById('f-tagid-none-btn');
+  if (tagIdInp) { tagIdInp.disabled = false; tagIdInp.style.opacity = ''; tagIdInp.style.cursor = ''; }
+  if (tagIdNoneBtn) { tagIdNoneBtn.disabled = false; tagIdNoneBtn.style.opacity = ''; }
+
+  // 事象管理セクションも非表示に戻す
+  const phenSec = document.getElementById('phenomenon-settings-section');
+  if (phenSec) phenSec.style.display = 'none';
+
+  // フォーカスをSTEP1のQR入力に戻す
+  setTimeout(() => focusScanInput(), 100);
+}
+
+// ══════════════════════════════════════════
+// 履歴画面
+// ══════════════════════════════════════════
+async function loadHistory() {
+  if (!GAS_URL) { showToast('GAS URLが未設定です', 'warning'); return; }
+  showLoading('履歴取得中...');
+  try {
+    const result = await gasGet('getAnomalyHistory');
+    if (!result.ok) throw new Error(result.error || '取得失敗');
+    ALL_HISTORY = result.anomalies || [];
+    hideLoading();
+    applyFilters();
+  } catch(e) {
+    hideLoading();
+    showToast('履歴取得エラー: ' + e.message, 'error');
+  }
+}
+
+function applyFilters() {
+  const month = document.getElementById('fil-month').value;
+  const type = document.getElementById('fil-type').value;
+  const item = (document.getElementById('fil-item').value || '').toLowerCase();
+  const reporter = ROLE === '__priv__' || ROLE === 'kanri' || ROLE === 'viewer'
+    ? (document.getElementById('fil-reporter').value || '').toLowerCase()
+    : SESSION.workerName.toLowerCase();
+
+  let filtered = ALL_HISTORY.filter(a => {
+    if (ROLE === 'operator') {
+      if ((a.reporter || '').toLowerCase() !== SESSION.workerName.toLowerCase()) return false;
+    }
+    if (month && !(a.reportDate || '').startsWith(month)) return false;
+    if (type && a.reportType !== type) return false;
+    if (item && !(a.itemCode || '').toLowerCase().includes(item) && !(a.itemName || '').toLowerCase().includes(item)) return false;
+    if (reporter && ROLE !== 'operator' && !(a.reporter || '').toLowerCase().includes(reporter)) return false;
+    return true;
+  });
+
+  renderHistory(filtered);
+}
+
+function renderHistory(list) {
+  const container = document.getElementById('history-list');
+  // 作業者フィルター表示制御
+  document.getElementById('fil-reporter-group').style.display = (ROLE === 'operator') ? 'none' : 'flex';
+  // Excel ボタン
+  document.getElementById('xlsx-export-btn').hidden = (ROLE === 'operator' || ROLE === 'viewer');
+
+  if (!list.length) {
+    container.innerHTML = '<div style="text-align:center;color:var(--text3);padding:40px;font-size:13px;">履歴がありません</div>';
+    return;
+  }
+
+  container.innerHTML = list.map(a => `
+    <div class="anomaly-card" onclick="openDetail('${a.reportId}')">
+      <div class="ac-head">
+        <input type="checkbox" class="xlsx-chk-col" data-id="${a.reportId}" onclick="event.stopPropagation()" style="margin-right:4px;display:${ROLE!=='operator'?'inline':'none'}">
+        <span class="badge badge-${a.reportType==='部品'?'orange':'blue'}">${a.reportType||'—'}</span>
+        <span class="ac-date">${fmtDate(a.reportDate)}</span>
+        <span class="ac-id">ID: ${(a.reportId||'').slice(-8)}</span>
+      </div>
+      <div class="ac-item">${a.itemCode||'—'} ${a.itemName||''}</div>
+      <div class="ac-body" style="margin-top:4px;">
+        <span class="badge badge-${phenomenonBadge(a.phenomenon)}" style="margin-right:6px;">${a.phenomenon||'—'}</span>
+        数量: ${a.defectQty||'—'}
+      </div>
+      <div class="ac-footer">
+        <span style="font-size:11px;color:var(--text3);">報告者: ${a.reporter||'—'}</span>
+        ${a.rokiReport ? `<span class="badge badge-${a.rokiReport==='済'?'green':'orange'}">ROKI: ${a.rokiReport}</span>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+function phenomenonBadge(p) {
+  if (p === '不足') return 'orange';
+  if (p === '破損') return 'red';
+  if (p === '支給時から不良') return 'red';
+  if (p === '貼付け作業済ラベル返却') return 'blue';
+  return 'gray';
+}
+
+function openDetail(reportId) {
+  const a = ALL_HISTORY.find(x => x.reportId === reportId);
+  if (!a) return;
+  DETAIL_TARGET_ID = reportId;
+
+  const isPriv = ROLE === '__priv__';
+
+  document.getElementById('detail-content').innerHTML = `
+    <table style="width:100%;border-collapse:collapse;font-size:12px;">
+      ${detailRow('報告ID', a.reportId)}
+      ${detailRow('報告日', fmtDate(a.reportDate))}
+      ${detailRow('報告者', a.reporter)}
+      ${detailRow('報告種別', a.reportType)}
+      ${detailRow('品番', a.itemCode)}
+      ${detailRow('品名', a.itemName)}
+      ${detailRow('客先品番', a.custPartNo)}
+      ${detailRow('メーカー', a.maker)}
+      ${detailRow('支給日', a.supplyDate)}
+      ${detailRow('対象包材', a.packingMarks)}
+      ${detailRow('事象', a.phenomenon)}
+      ${detailRow('事象詳細', a.phenomenonOther)}
+      ${detailRow('状況詳細', a.situation)}
+      ${detailRow('納期', a.deliveryDate)}
+      ${detailRow('数量', a.defectQty)}
+      ${detailRow('作業依頼書No', a.workOrderNo)}
+      ${isPriv ? detailRow('ROKI報告', a.rokiReport||'未') : ''}
+      ${isPriv ? detailRow('ROKI報告日', a.rokiReportDate) : ''}
+      ${detailRow('登録日時', a.createdAt ? new Date(a.createdAt).toLocaleString('ja-JP') : '')}
+      ${a.updatedAt && a.updatedAt !== a.createdAt ? detailRow('更新日時', new Date(a.updatedAt).toLocaleString('ja-JP')) : ''}
+    </table>
+  `;
+
+  const editBtn = document.getElementById('detail-edit-btn');
+  const delBtn = document.getElementById('detail-delete-btn');
+  editBtn.hidden = !isPriv;
+  delBtn.hidden = !isPriv;
+
+  openModal('detail-modal');
+}
+
+function detailRow(label, val) {
+  if (!val && val !== 0) return '';
+  return `<tr>
+    <td style="padding:5px 8px;border-bottom:1px solid var(--border);color:var(--text3);font-weight:700;white-space:nowrap;width:30%;">${label}</td>
+    <td style="padding:5px 8px;border-bottom:1px solid var(--border);color:var(--text);">${val}</td>
+  </tr>`;
+}
+
+function openEditMode() {
+  const a = ALL_HISTORY.find(x => x.reportId === DETAIL_TARGET_ID);
+  if (!a) return;
+  closeModal('detail-modal');
+
+  document.getElementById('edit-phenomenon').value = a.phenomenon || '不足';
+  document.getElementById('edit-phenomenon-other').value = a.phenomenonOther || '';
+  document.getElementById('edit-situation').value = a.situation || '';
+  document.getElementById('edit-defect-qty').value = a.defectQty || '';
+  document.getElementById('edit-delivery-date').value = a.deliveryDate || '';
+
+  const rokiSec = document.getElementById('edit-roki-section');
+  rokiSec.style.display = ROLE === '__priv__' ? 'block' : 'none';
+  if (ROLE === '__priv__') {
+    document.getElementById('edit-roki-report').value = a.rokiReport || '未';
+    document.getElementById('edit-roki-date').value = a.rokiReportDate || '';
+  }
+  openModal('edit-modal');
+}
+
+async function saveEdit() {
+  const a = ALL_HISTORY.find(x => x.reportId === DETAIL_TARGET_ID);
+  if (!a) return;
+
+  const updated = {
+    ...a,
+    phenomenon: document.getElementById('edit-phenomenon').value,
+    phenomenonOther: document.getElementById('edit-phenomenon-other').value,
+    situation: document.getElementById('edit-situation').value,
+    defectQty: Number(document.getElementById('edit-defect-qty').value),
+    deliveryDate: document.getElementById('edit-delivery-date').value,
+    _senderRole: 'privileged',
+  };
+  if (ROLE === '__priv__') {
+    updated.rokiReport = document.getElementById('edit-roki-report').value;
+    updated.rokiReportDate = document.getElementById('edit-roki-date').value;
+  }
+
+  showLoading('更新中...');
+  try {
+    const result = await gasPost('updateAnomaly', updated);
+    if (!result.ok) throw new Error(result.error || '更新失敗');
+    hideLoading();
+    closeModal('edit-modal');
+    showToast('✓ 更新しました', 'success');
+    await loadHistory();
+  } catch(e) {
+    hideLoading();
+    showToast('更新エラー: ' + e.message, 'error');
+  }
+}
+
+function confirmDeleteAnomaly() {
+  closeModal('detail-modal');
+  const btn = document.getElementById('confirm-delete-ok-btn');
+  btn.onclick = () => deleteAnomaly(DETAIL_TARGET_ID);
+  openModal('confirm-modal');
+}
+
+async function deleteAnomaly(reportId) {
+  closeModal('confirm-modal');
+  showLoading('削除中...');
+  try {
+    const result = await gasPost('deleteAnomaly', { reportId });
+    if (!result.ok) throw new Error(result.error || '削除失敗');
+    hideLoading();
+    showToast('✓ 削除しました', 'success');
+    await loadHistory();
+  } catch(e) {
+    hideLoading();
+    showToast('削除エラー: ' + e.message, 'error');
+  }
+}
+
+// ══════════════════════════════════════════
+// Excel 出力 (SheetJS)
+// ══════════════════════════════════════════
+function exportSelectedXlsx() {
+  const checked = [...document.querySelectorAll('.xlsx-chk-col:checked')].map(el => el.dataset.id);
+  if (!checked.length) { showToast('出力する項目を選択してください', 'warning'); return; }
+
+  const selected = checked.map(id => ALL_HISTORY.find(a => a.reportId === id)).filter(Boolean);
+
+  // 納入遅延報告書フォーマット
+  // ヘッダー行 (仕様: 2行で1件。理由変換)
+  const headerRows = [
+    ['納入遅延報告書'],
+    [],
+    ['発信者', '(有)早津工業社 浜北', '', '担当', '吉野'],
+    ['受信者', '株式会社ＲＯＫＩ', '', '担当', '神谷様,倉田様'],
+    ['発行日', toIsoDate(new Date())],
+    [],
+    ['№','','部品番号','品名','数量','納期','','','','','','','','支給品○','','','','その他事由'],
+  ];
+
+  const dataRows = [];
+  selected.forEach((rec, idx) => {
+    const isSupply = rec.phenomenon === '支給時から不良'
+                  || rec.phenomenon === '不足'
+                  || rec.phenomenon === '破損';
+    const reasonSupply = (rec.phenomenon === '不足' || rec.phenomenon === '破損' || rec.phenomenon === '支給時から不良') ? '○' : '';
+    const reasonOther = rec.phenomenon === 'その他' ? '○' : '';
+    const otherDetail = (rec.phenomenon === 'その他' ? (rec.phenomenonOther || '') : '')
+      + (rec.packingMarks ? '  包材: ' + rec.packingMarks : '')
+      + (rec.situation ? '  ' + rec.situation : '');
+
+    dataRows.push([idx + 1, '', rec.itemCode || '', rec.itemName || '', rec.defectQty || '',
+                   rec.deliveryDate || '', '', '', '', '', '', '', '', reasonSupply, '', '', '', otherDetail]);
+    dataRows.push(['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '']);
+  });
+
+  const allRows = [...headerRows, ...dataRows];
+  const ws = XLSX.utils.aoa_to_sheet(allRows);
+  ws['A1'].s = { font: { bold: true, sz: 14 } };
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, '納入遅延報告書');
+
+  // [FIX-JST] ファイル名の日付をJSTで生成
+  const _now=new Date();const _jst=new Date(_now.getTime()+9*60*60*1000);
+  const date = _jst.toISOString().substring(0, 10).replace(/-/g, '');
+  XLSX.writeFile(wb, `納入遅延報告書_${date}_${selected.length}件.xlsx`);
+  showToast(`✓ ${selected.length}件をExcel出力しました`, 'success');
+}
+
+// ══════════════════════════════════════════
+// 設定画面
+// ══════════════════════════════════════════
+function renderSettingsScreen() {
+  document.getElementById('gas-url-inp').value = GAS_URL;
+  renderRoleSettingsTable();
+  renderPhenomenonSettingsList();
+}
+
+function saveGasUrl() {
+  const url = document.getElementById('gas-url-inp').value.trim();
+  if (!url || !url.startsWith('https://')) {
+    showToast('https:// から始まる URL を入力してください', 'error');
+    return;
+  }
+  GAS_URL = url;
+  localStorage.setItem('anomaly_gas_url', url);
+  showToast('✓ GAS URLを保存しました。マスタを再取得します...', 'success');
+  setTimeout(() => syncMaster(true), 500);
+}
+
+async function testGasUrl() {
+  if (!GAS_URL) { showToast('URLを入力してください', 'warning'); return; }
+  showLoading('疎通確認中...');
+  try {
+    const result = await gasGet('ping');
+    hideLoading();
+    showToast('✓ 接続OK: ' + JSON.stringify(result), 'success', 5000);
+  } catch(e) {
+    hideLoading();
+    showToast('接続NG: ' + e.message, 'error');
+  }
+}
+
+function renderRoleSettingsTable() {
+  const wrap = document.getElementById('role-settings-table-wrap');
+  if (!ROLE_SETTINGS_LIST.length) {
+    wrap.innerHTML = '<p style="font-size:12px;color:var(--text3);margin-bottom:10px;">ロール設定なし</p>';
+    return;
+  }
+  wrap.innerHTML = `<div class="data-table-wrap" style="margin-bottom:10px;">
+    <table class="data-table">
+      <thead><tr><th>作業者QR</th><th>ロール</th><th></th></tr></thead>
+      <tbody>
+      ${ROLE_SETTINGS_LIST.map((r, i) => `
+        <tr>
+          <td>${r.employeeQrNo}</td>
+          <td><span class="badge badge-${roleBadgeClass(r.role)}">${roleDisplayName(r.role)}</span></td>
+          <td><button class="btn btn-ghost btn-sm" onclick="removeRoleSetting(${i})">削除</button></td>
+        </tr>
+      `).join('')}
+      </tbody>
+    </table>
+  </div>`;
+}
+
+function roleBadgeClass(role) {
+  if (role === '__priv__' || role === 'admin_role') return 'red';
+  if (role === 'kanri') return 'blue';
+  return 'gray';
+}
+
+function roleDisplayName(role) {
+  if (role === '__priv__' || role === 'admin_role') return '管理者';
+  if (role === 'kanri') return '管理（閲覧）';
+  return 'オペレーター';
+}
+
+function openAddRoleModal() {
+  document.getElementById('role-emp-qr').value = '';
+  document.getElementById('role-sel').value = 'operator';
+  openModal('add-role-modal');
+}
+
+function addRoleSetting() {
+  const qr = document.getElementById('role-emp-qr').value.trim();
+  const role = document.getElementById('role-sel').value;
+  if (!qr) { showToast('QRコードを入力してください', 'error'); return; }
+  if (ROLE_SETTINGS_LIST.find(r => r.employeeQrNo === qr)) {
+    showToast('既に登録されています', 'error'); return;
+  }
+  ROLE_SETTINGS_LIST.push({ employeeQrNo: qr, role });
+  ROLE_SETTINGS_MAP.set(qr, role);
+  renderRoleSettingsTable();
+  closeModal('add-role-modal');
+  showToast('✓ 追加しました', 'success');
+}
+
+function removeRoleSetting(idx) {
+  ROLE_SETTINGS_LIST.splice(idx, 1);
+  renderRoleSettingsTable();
+}
+
+async function saveRoleSettings() {
+  if (!GAS_URL) { showToast('GAS URLが未設定です', 'error'); return; }
+  showLoading('保存中...');
+  try {
+    const result = await gasPost('saveRoleSettings', { rows: ROLE_SETTINGS_LIST });
+    hideLoading();
+    if (result.ok) {
+      showToast('✓ ロール設定を保存しました', 'success');
+    } else {
+      throw new Error(result.error || '保存失敗');
+    }
+  } catch(e) {
+    hideLoading();
+    showToast('保存エラー: ' + e.message, 'error');
+  }
+}
+
+// ══════════════════════════════════════════
+// GAS 通信
+// ══════════════════════════════════════════
+async function gasGet(action, params = {}) {
+  const url = new URL(GAS_URL);
+  url.searchParams.set('action', action);
+  Object.keys(params).forEach(k => url.searchParams.set(k, params[k]));
+  const resp = await fetch(url.toString(), { mode: 'cors' });
+  return await resp.json();
+}
+
+async function gasPost(action, data = {}) {
+  const body = new URLSearchParams({
+    action,
+    data: JSON.stringify(data),
+    device: SESSION.workerQrNo || 'browser'
+  });
+  const resp = await fetch(GAS_URL, {
+    method: 'POST',
+    mode: 'cors',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: body.toString()
+  });
+  return await resp.json();
+}
+
+// ══════════════════════════════════════════
+// 言語適用
+// ══════════════════════════════════════════
+function setLang(lang) {
+  LANG = lang;
+  localStorage.setItem('anomaly_lang', lang);
+  document.querySelectorAll('.lang-btn').forEach(b => {
+    b.classList.toggle('active', b.textContent.toLowerCase().includes(lang === 'tl' ? 'tgl' : lang === 'pt' ? 'por' : lang === 'vi' ? 'vie' : 'jpn'));
+  });
+  applyLang(lang);
+}
+
+function applyLang(lang) {
+  const dict = I18N[lang] || I18N.ja;
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (dict[key]) el.textContent = dict[key];
+  });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+    const key = el.getAttribute('data-i18n-ph');
+    if (dict[key]) el.placeholder = dict[key];
+  });
+  document.querySelectorAll('[data-i18n-val]').forEach(el => {
+    const key = el.getAttribute('data-i18n-val');
+    if (dict[key]) el.textContent = dict[key];
+  });
+  // lang-btn active 状態同期
+  const map = { ja:'jpn', pt:'por', tl:'tgl', vi:'vie' };
+  document.querySelectorAll('.lang-btn').forEach(b => {
+    b.classList.toggle('active', b.textContent.toLowerCase() === (map[lang]||lang));
+  });
+}
+
+// ══════════════════════════════════════════
+// UI ヘルパー
+// ══════════════════════════════════════════
+function showLoading(msg) {
+  const overlay = document.getElementById('loading-overlay');
+  if (msg) document.getElementById('loading-msg').textContent = msg;
+  overlay.classList.add('active');
+}
+function hideLoading() {
+  document.getElementById('loading-overlay').classList.remove('active');
+}
+
+function showToast(msg, type = 'info', duration = 3000) {
+  const wrap = document.getElementById('toast-wrap');
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.textContent = msg;
+  wrap.appendChild(el);
+  requestAnimationFrame(() => el.classList.add('show'));
+  setTimeout(() => {
+    el.classList.remove('show');
+    setTimeout(() => el.remove(), 300);
+  }, duration);
+}
+
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function fmtDate(s) {
+  if (!s) return '—';
+  try { return new Date(s).toLocaleDateString('ja-JP'); } catch(_) { return String(s); }
+}
+// ISO文字列・yyyy-MM-dd・yyyy/MM/dd すべてを "yyyy-MM-dd" に正規化
+// WMS(index.html) の normDateStr と同じロジックで UTC ずれを回避
+function isoToDateStr(s) {
+  if (!s) return '';
+  var str = String(s);
+  // "2026-06-10T15:00:00.000Z" のようなISO形式 → ローカル日付で取り出す
+  if (str.indexOf('T') !== -1) {
+    var dt = new Date(str);
+    if (!isNaN(dt)) {
+      return dt.getFullYear() + '-'
+        + String(dt.getMonth() + 1).padStart(2, '0') + '-'
+        + String(dt.getDate()).padStart(2, '0');
+    }
+  }
+  // "yyyy-MM-dd" はそのまま返す
+  if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
+  // "yyyy/MM/dd" はハイフン区切りに変換
+  if (/^\d{4}\/\d{2}\/\d{2}$/.test(str)) return str.replace(/\//g, '-');
+  return str;
+}
+
+function toIsoDate(d) {
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+// モーダル外クリックで閉じる
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) closeModal(overlay.id);
+  });
+});
+
+// ══════════════════════════════════════════
+// WMS連携：URLパラメータ読み取り & postMessage受信
+// ══════════════════════════════════════════
+
+// WMSから渡されたアカウント情報（マスタ取得後に照合して自動ログイン）
+let WMS_PENDING = null; // { wid, wname, role }
+
+function readWmsParams() {
+  const p = new URLSearchParams(location.search);
+  const wid   = p.get('wid')   || '';
+  const wname = p.get('wname') || '';
+  const role  = p.get('role')  || '';
+  if (wid) WMS_PENDING = { wid, wname, role };
+}
+
+// postMessage受信（window.open後にWMSが送るケース）
+window.addEventListener('message', (e) => {
+  if (!e.data || e.data.type !== 'anomaly_init') return;
+  const wid   = e.data.workerId || '';
+  const wname = e.data.workerName || wid;
+  const role  = e.data.role || '';
+  if (!wid) return;
+  WMS_PENDING = { wid, wname, role };
+  // マスタ取得済みなら即座に自動ログイン試行
+  if (WORKERS_MAP.size > 0) tryWmsAutoLogin();
+});
+
+// マスタ取得後に呼び出す自動ログイン処理
+function tryWmsAutoLogin() {
+  if (!WMS_PENDING) return;
+  const { wid, wname, role: wmsRole } = WMS_PENDING;
+  WMS_PENDING = null;
+
+  // 作業者マスタで wid を照合
+  const worker = WORKERS_MAP.get(wid);
+  if (worker) {
+    // マスタにヒット → マスタのroleを使用（信頼できる情報源）
+    setWorkerFound(wid, worker.name || wid, worker.category || '');
+  } else {
+    // マスタ未登録 → WMSのrole情報でフォールバック
+    const mapped = wmsRole === 'administrator' ? 'admin_role'
+                 : wmsRole === 'kanri'         ? 'kanri'
+                 : wmsRole === 'viewer'         ? 'viewer'
+                 : 'operator';
+    ROLE_SETTINGS_MAP.set(wid, mapped);
+    setWorkerFound(wid, wname || wid, '');
+  }
+
+  // viewer はsetWorkerFound内でswitchTab('history')済みのためSTEP遷移不要
+  // それ以外はSTEP1をスキップしてSTEP2へ
+  if (ROLE !== 'viewer') {
+    gotoStep(2);
+  }
+}
+
+// ── 起動 ──
+window.addEventListener('DOMContentLoaded', () => {
+  readWmsParams(); // URLパラメータを最初に読む
+  applyLang(LANG);
+  initApp();
+  // 事象ボタン・セレクトを初期描画
+  renderPhenomenonOpts();
+  renderEditPhenomenonSelect();
+
+  // ③ QRスキャン入力のblur時フォーカス復帰
+  // pointerdownで「次にタップした要素」を記録し、
+  // インタラクティブ要素（ボタン・入力欄など）への遷移なら復帰しない設計。
+  // activeElementベースの判定は タッチ操作時に未確定になるため使わない。
+  let lastPointerTarget = null;
+  document.addEventListener('pointerdown', (e) => {
+    lastPointerTarget = e.target;
+  }, true);
+
+  const scanInputIds = ['worker-qr-inp', 'item-scan-inp'];
+  scanInputIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('blur', () => {
+      // 手動入力モード中は復帰しない
+      if (manualInputMode) return;
+      // タップ先がインタラクティブ要素 or その子孫なら復帰しない
+      const t = lastPointerTarget;
+      if (t && t !== el) {
+        const tag = (t.tagName || '').toUpperCase();
+        if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA' ||
+            tag === 'BUTTON' || tag === 'A') return;
+        if (t.closest('button, input, select, textarea, a, [tabindex]')) return;
+      }
+      setTimeout(() => focusScanInput(), 80);
+    });
+  });
+});
+</script>
+</body>
+</html>
