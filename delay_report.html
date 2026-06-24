@@ -1,0 +1,1318 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+<meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
+<title>納入遅延報告 - 早津工業社</title>
+<meta name="theme-color" content="#1a1d2e">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="納入遅延報告">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#f0f2f5;--surface:#ffffff;--surface2:#f5f6fa;--surface3:#e8eaf0;--border:#c5c9d8;
+  --text:#1a1d2e;--text2:#424875;--text3:#7c83b2;
+  --blue:#3f51b5;--blue2:#3949ab;--blue-bg:rgba(63,81,181,.10);
+  --green:#1b5e20;--green2:#2e7d32;--green-bg:rgba(27,94,32,.12);
+  --red:#b71c1c;--red2:#c62828;--red-bg:rgba(183,28,28,.12);
+  --orange:#e65100;--orange2:#ef6c00;--orange-bg:rgba(230,81,0,.10);
+  --auto-bg:#e8f5e9;
+  --rad:8px;--rad-lg:12px;
+  --shadow:0 2px 8px rgba(0,0,0,.12);
+  --header-h:48px;--lang-h:36px;--tabs-h:56px;
+}
+html,body{height:100%;overflow:hidden;}
+body{background:var(--bg);color:var(--text);font-family:'Hiragino Sans','Meiryo',sans-serif;font-size:21px;display:flex;flex-direction:column;}
+
+#lang-bar{
+  position:fixed;top:0;left:0;right:0;height:var(--lang-h);
+  background:rgba(16,19,26,.98);border-bottom:1px solid var(--border);
+  z-index:300;display:flex;align-items:center;justify-content:space-between;padding:0 12px;gap:8px;
+}
+#app-badge{font-size:16px;font-weight:800;color:#7986cb;letter-spacing:.5px;}
+#sync-status{font-size:15px;color:#9fa8da;}
+#sync-btn{font-size:16px;padding:3px 10px;border-radius:10px;cursor:pointer;
+  background:#252a3d;border:1.5px solid #2d3350;color:#9fa8da;}
+#sync-btn:hover{border-color:var(--blue);color:#fff;}
+
+#tabs{
+  position:fixed;bottom:0;left:0;right:0;height:var(--tabs-h);
+  background:rgba(16,19,26,.98);border-top:1px solid var(--border);
+  display:flex;z-index:300;
+}
+.tab-btn{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  border:none;background:none;color:#5c6bc0;cursor:pointer;padding:0;
+  font-size:15px;font-weight:700;font-family:inherit;transition:color .15s;
+  border-top:2px solid transparent;
+}
+.tab-btn .ti{font-size:28px;line-height:1;}
+.tab-btn.active{color:#7986cb;border-top-color:#7986cb;}
+
+.screen{
+  display:none;position:fixed;
+  top:var(--lang-h);left:0;right:0;bottom:var(--tabs-h);
+  overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding:14px 14px 80px;
+}
+.screen.active{display:block;}
+
+#loading-overlay{
+  display:none;position:fixed;inset:0;background:rgba(10,12,18,.88);
+  z-index:9000;flex-direction:column;align-items:center;justify-content:center;gap:20px;
+}
+#loading-overlay.active{display:flex;}
+.spinner{
+  width:48px;height:48px;border:4px solid var(--border);
+  border-top-color:#7986cb;border-radius:50%;
+  animation:spin .8s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+.loading-msg{font-size:21px;font-weight:700;color:#e6e9f4;}
+#loading-retry-btn{
+  display:none;padding:10px 24px;background:var(--red2);color:#fff;
+  border:none;border-radius:var(--rad);font-size:21px;font-weight:700;cursor:pointer;margin-top:8px;
+}
+
+#toast-wrap{position:fixed;top:44px;right:12px;z-index:9999;display:flex;flex-direction:column;gap:6px;pointer-events:none;}
+.toast{
+  background:#1a1d2e;color:#fff;padding:10px 16px;border-radius:var(--rad);
+  font-size:18px;font-weight:700;box-shadow:var(--shadow);
+  opacity:0;transform:translateX(20px);transition:all .22s;max-width:320px;
+}
+.toast.show{opacity:1;transform:translateX(0);}
+.toast.success{border-left:3px solid var(--green2);}
+.toast.error{border-left:3px solid var(--red2);}
+.toast.info{border-left:3px solid var(--blue2);}
+.toast.warning{border-left:3px solid var(--orange2);}
+
+.card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--rad-lg);padding:16px;margin-bottom:12px;
+  box-shadow:var(--shadow);
+}
+.card-title{font-size:16px;font-weight:700;color:var(--text3);
+  text-transform:uppercase;letter-spacing:.6px;margin-bottom:12px;}
+
+.form-group{margin-bottom:14px;}
+.form-label{display:block;font-size:16px;font-weight:700;color:var(--text2);margin-bottom:5px;}
+.form-label .req{color:var(--red2);margin-left:2px;}
+.inp{
+  width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--rad);
+  font-size:21px;font-family:inherit;outline:none;
+  background:var(--surface2);color:var(--text);transition:border-color .15s;
+}
+.inp:focus{border-color:#3949ab;}
+.inp[readonly]{background:var(--auto-bg);color:var(--green2);border-color:#a5d6a7;cursor:default;}
+
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  padding:9px 18px;border-radius:var(--rad);border:none;
+  font-size:19px;font-weight:700;font-family:inherit;cursor:pointer;
+  min-height:48px;transition:all .15s;
+}
+.btn-primary{background:var(--blue);color:#fff;} .btn-primary:hover{background:var(--blue2);}
+.btn-success{background:var(--green);color:#fff;} .btn-success:hover{background:var(--green2);}
+.btn-danger{background:var(--red);color:#fff;} .btn-danger:hover{background:var(--red2);}
+.btn-warning{background:var(--orange);color:#fff;} .btn-warning:hover{background:var(--orange2);}
+.btn-ghost{background:var(--surface2);color:var(--text2);border:1.5px solid var(--border);}
+.btn-ghost:hover{border-color:var(--blue);color:var(--blue2);}
+.btn-sm{padding:5px 12px;font-size:16px;min-height:36px;}
+.btn-lg{padding:12px 28px;font-size:22px;min-height:56px;}
+.btn-full{width:100%;}
+.btn:disabled{opacity:.35;cursor:not-allowed;}
+
+.badge{display:inline-block;padding:2px 10px;border-radius:12px;font-size:15px;font-weight:700;}
+.badge-blue{background:var(--blue-bg);color:var(--blue2);}
+.badge-orange{background:var(--orange-bg);color:var(--orange2);}
+.badge-red{background:var(--red-bg);color:var(--red2);}
+.badge-gray{background:var(--surface3);color:var(--text2);}
+
+.step-header{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.step-num{width:42px;height:42px;border-radius:50%;background:var(--blue);color:#fff;
+  font-size:22px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.step-title{font-size:22px;font-weight:800;color:var(--text);}
+.step-subtitle{font-size:18px;color:var(--text3);margin-top:2px;}
+
+.scan-area{background:var(--blue-bg);border:2px solid var(--blue);border-radius:var(--rad-lg);padding:16px;margin-bottom:14px;}
+.scan-area.warning{background:var(--orange-bg);border-color:var(--orange2);}
+.scan-label{font-size:19px;font-weight:700;color:var(--blue2);margin-bottom:8px;}
+.scan-label.warning{color:var(--orange2);}
+.scan-inp{
+  width:100%;padding:10px 14px;border:2px solid var(--blue2);border-radius:var(--rad);
+  font-size:24px;font-weight:700;font-family:inherit;text-align:center;
+  outline:none;background:var(--surface);color:var(--text);letter-spacing:2px;
+}
+.scan-hint{font-size:16px;color:var(--text3);margin-top:6px;}
+
+#worker-info-panel{display:none;padding:14px;background:var(--green-bg);border:1.5px solid var(--green2);border-radius:var(--rad-lg);margin-bottom:14px;}
+#worker-info-panel.active{display:block;}
+.wi-name{font-size:26px;font-weight:800;color:var(--green2);}
+
+#item-info-panel{display:none;padding:14px;background:var(--blue-bg);border:1.5px solid var(--blue2);border-radius:var(--rad-lg);margin-bottom:14px;}
+#item-info-panel.active{display:block;}
+.ii-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;}
+.ii-label{font-size:15px;color:var(--text3);font-weight:700;margin-bottom:2px;}
+.ii-value{font-size:19px;font-weight:700;color:var(--text);}
+.ii-value.big{font-size:24px;color:var(--blue2);}
+
+#duedate-list{display:flex;flex-direction:column;gap:8px;margin-bottom:14px;}
+.duedate-opt{padding:12px 16px;background:var(--surface2);border:2px solid var(--border);border-radius:var(--rad);cursor:pointer;font-size:21px;font-weight:700;transition:all .15s;}
+.duedate-opt:hover{border-color:var(--blue);color:var(--blue2);}
+.duedate-opt.selected{background:var(--blue-bg);border-color:var(--blue2);color:var(--blue2);}
+
+/* 種別トグル(部品/包材 両方ON可) */
+.type-btns{display:flex;gap:12px;margin-bottom:14px;}
+.type-btn{flex:1;padding:18px 10px;background:var(--surface2);border:2px solid var(--border);border-radius:var(--rad-lg);cursor:pointer;text-align:center;transition:all .2s;}
+.type-btn .tb-icon{font-size:36px;margin-bottom:6px;}
+.type-btn .tb-label{font-size:21px;font-weight:800;color:var(--text2);}
+.type-btn.on-parts{background:var(--orange-bg);border-color:var(--orange2);}
+.type-btn.on-parts .tb-label{color:var(--orange2);}
+.type-btn.on-packing{background:var(--blue-bg);border-color:var(--blue2);}
+.type-btn.on-packing .tb-label{color:var(--blue2);}
+
+.chk-list{display:flex;flex-wrap:wrap;gap:8px;}
+.packing-chk{padding:8px 14px;background:var(--surface2);border:1.5px solid var(--border);border-radius:20px;cursor:pointer;font-size:18px;font-weight:700;color:var(--text2);transition:all .15s;user-select:none;}
+.packing-chk:hover{border-color:var(--blue);}
+.packing-chk.checked.cat-packing{background:var(--blue-bg);border-color:var(--blue2);color:var(--blue2);}
+.packing-chk.checked.cat-parts{background:var(--orange-bg);border-color:var(--orange2);color:var(--orange2);}
+
+/* STEP4 部品/包材ごとの報告カード */
+.comp-card{border:1.5px solid var(--border);border-radius:var(--rad-lg);padding:12px 14px;margin-bottom:10px;background:var(--surface2);}
+.comp-card.filled{border-color:#a5d6a7;background:var(--auto-bg);}
+.comp-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
+.comp-code{font-size:20px;font-weight:800;color:var(--text);}
+.comp-name{font-size:15px;color:var(--text3);}
+.content-btns{display:flex;gap:8px;margin-bottom:8px;}
+.content-btn{flex:1;padding:10px;text-align:center;border:2px solid var(--border);border-radius:var(--rad);font-size:18px;font-weight:700;color:var(--text2);background:var(--surface);cursor:pointer;transition:all .15s;}
+.content-btn.selected-shortage{background:var(--red-bg);border-color:var(--red2);color:var(--red2);}
+.content-btn.selected-unsupplied{background:var(--orange-bg);border-color:var(--orange2);color:var(--orange2);}
+.comp-qty-row{display:none;}
+.comp-qty-row.show{display:block;}
+
+#history-list{display:flex;flex-direction:column;gap:10px;}
+.hist-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rad-lg);padding:14px;}
+.hist-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;}
+.hist-date{font-size:16px;color:var(--text3);}
+.hist-item{font-size:21px;font-weight:800;color:var(--blue2);}
+.hist-line{font-size:18px;color:var(--text);margin-top:2px;}
+
+#step-nav{display:flex;align-items:center;gap:4px;margin-bottom:20px;background:var(--surface);border:1px solid var(--border);border-radius:var(--rad);padding:10px 14px;}
+.sn-dot{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;flex-shrink:0;}
+.sn-dot.done{background:var(--green);color:#fff;}
+.sn-dot.active{background:#3949ab;color:#fff;box-shadow:0 0 0 3px rgba(121,134,203,.25);}
+.sn-dot.pending{background:var(--surface3);color:var(--text3);}
+.sn-line{flex:1;height:2px;background:var(--border);}
+.sn-line.done{background:var(--green);}
+
+#setup-screen{display:none;position:fixed;inset:0;z-index:8000;background:var(--bg);align-items:center;justify-content:center;flex-direction:column;padding:24px;}
+#setup-screen.active{display:flex;}
+.setup-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rad-lg);padding:32px 28px;width:100%;max-width:480px;box-shadow:0 8px 40px rgba(0,0,0,.5);}
+.setup-logo{font-size:30px;font-weight:800;color:#3949ab;text-align:center;margin-bottom:4px;}
+.setup-sub{font-size:18px;color:var(--text3);text-align:center;margin-bottom:28px;}
+.setup-step{background:var(--surface2);border:1px solid var(--border);border-radius:var(--rad);padding:14px;margin-bottom:14px;}
+.setup-step-title{font-size:18px;font-weight:800;color:var(--text2);margin-bottom:10px;}
+.setup-hint{font-size:16px;color:var(--text3);margin-top:6px;line-height:1.6;}
+.setup-err{font-size:18px;color:var(--red2);font-weight:700;min-height:18px;margin-bottom:10px;text-align:center;}
+</style>
+</head>
+<body>
+
+<div id="lang-bar">
+  <span id="app-badge">🚚 納入遅延報告</span>
+  <div style="display:flex;align-items:center;gap:8px;">
+    <span id="sync-status"></span>
+    <button id="sync-btn" onclick="syncMaster(true)">🔄 更新</button>
+  </div>
+</div>
+
+<div id="setup-screen">
+  <div class="setup-card">
+    <div class="setup-logo">🚚 納入遅延報告アプリ</div>
+    <div class="setup-sub">早津工業社 / 浜北工場 製造3課</div>
+    <div class="setup-step">
+      <div class="setup-step-title">① GAS エンドポイント URL を入力してください</div>
+      <input type="url" id="setup-gas-url" class="inp" placeholder="https://script.google.com/macros/s/..."
+             style="font-size:12px;margin-bottom:6px;" oninput="document.getElementById('setup-err').textContent=''">
+      <div class="setup-hint">梱包アプリ・異常報告アプリと同じ GAS デプロイ URL を貼り付けてください。</div>
+    </div>
+    <div class="setup-err" id="setup-err"></div>
+    <button class="btn btn-primary btn-full btn-lg" onclick="onSetupSave()">✓ 保存して接続</button>
+  </div>
+</div>
+
+<div id="loading-overlay">
+  <div class="spinner"></div>
+  <div class="loading-msg" id="loading-msg">マスタ取得中...</div>
+  <button id="loading-retry-btn" onclick="initApp()">再試行</button>
+</div>
+
+<nav id="tabs">
+  <button class="tab-btn active" data-tab="report" onclick="switchTab('report')">
+    <span class="ti">📝</span><span>報告</span>
+  </button>
+  <button class="tab-btn" data-tab="history" onclick="switchTab('history')" style="display:none;">
+    <span class="ti">📋</span><span>履歴</span>
+  </button>
+  <button class="tab-btn" data-tab="send" onclick="switchTab('send')" style="display:none;">
+    <span class="ti">📧</span><span>送信</span>
+  </button>
+  <button class="tab-btn" data-tab="settings" onclick="switchTab('settings')" style="display:none;">
+    <span class="ti">⚙️</span><span>設定</span>
+  </button>
+</nav>
+
+<!-- ══════ SCREEN 1: 報告登録 ══════ -->
+<div class="screen active" id="sc-report">
+  <div id="step-nav">
+    <div class="sn-dot active" id="sn1">1</div><div class="sn-line" id="sl1"></div>
+    <div class="sn-dot pending" id="sn2">2</div><div class="sn-line" id="sl2"></div>
+    <div class="sn-dot pending" id="sn3">3</div><div class="sn-line" id="sl3"></div>
+    <div class="sn-dot pending" id="sn4">4</div>
+  </div>
+
+  <!-- STEP1: 作業者確認 -->
+  <div id="step1">
+    <div class="step-header">
+      <div class="step-num active">1</div>
+      <div><div class="step-title">作業者確認</div><div class="step-subtitle">QRコードをスキャンしてください</div></div>
+    </div>
+    <div class="scan-area">
+      <div class="scan-label">作業者QRコード</div>
+      <input type="text" id="worker-qr-inp" class="scan-inp" autocomplete="off" placeholder="QRスキャン待機中" oninput="onWorkerQrInput(this.value)">
+      <div class="scan-hint">QRリーダーでスキャンするか、入力してください</div>
+    </div>
+    <div id="worker-manual" style="display:none;">
+      <div class="scan-area warning">
+        <div class="scan-label warning">手動入力</div>
+        <select id="worker-manual-sel" class="scan-inp" onchange="onWorkerManualSelect(this.value)">
+          <option value="">作業者を選択...</option>
+        </select>
+      </div>
+    </div>
+    <div id="worker-info-panel"><div class="wi-name" id="wi-name"></div></div>
+    <button class="btn btn-primary btn-full btn-lg" id="step1-next-btn" disabled onclick="gotoStep(2)">次へ →</button>
+  </div>
+
+  <!-- STEP2: 品番スキャン -->
+  <div id="step2" style="display:none;">
+    <div class="step-header">
+      <div class="step-num active">2</div>
+      <div><div class="step-title">対象品番</div><div class="step-subtitle">納入が遅延している品番をスキャンしてください</div></div>
+    </div>
+    <div class="scan-area">
+      <div class="scan-label">品番スキャン</div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <input type="text" id="item-scan-inp" class="scan-inp" autocomplete="off" placeholder="品番スキャン待機中"
+               oninput="onItemScanInput(this.value)" style="flex:1;">
+        <button class="btn btn-ghost btn-sm" id="manual-input-toggle-btn" onclick="toggleManualInputMode()" style="white-space:nowrap;flex-shrink:0;">✏️ 手入力</button>
+      </div>
+      <div class="scan-hint">作業依頼書のバーコードをスキャン</div>
+      <div id="manual-input-mode-badge" style="display:none;margin-top:6px;font-size:15px;color:var(--orange2);font-weight:700;">✏️ 手入力モード（QR自動取込OFF）</div>
+    </div>
+    <div id="item-info-panel">
+      <div class="card-title">品番情報</div>
+      <div class="ii-grid">
+        <div><div class="ii-label">品番</div><div class="ii-value big" id="ii-code"></div></div>
+        <div><div class="ii-label">品名</div><div class="ii-value" id="ii-name"></div></div>
+        <div><div class="ii-label">メーカー</div><div class="ii-value" id="ii-maker"></div></div>
+        <div><div class="ii-label">客先品番</div><div class="ii-value" id="ii-custpart"></div></div>
+      </div>
+    </div>
+    <div id="duedate-section" style="display:none;">
+      <div class="card-title">納期を選択してください</div>
+      <div id="duedate-list"></div>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-ghost" onclick="gotoStep(1)">← 戻る</button>
+      <button class="btn btn-primary" style="flex:1;" id="step2-next-btn" disabled onclick="gotoStep(3)">次へ →</button>
+    </div>
+  </div>
+
+  <!-- STEP3: 対象選択(部品/包材 両方選択可・複数選択可) -->
+  <div id="step3" style="display:none;">
+    <div class="step-header">
+      <div class="step-num active">3</div>
+      <div><div class="step-title">対象選択</div><div class="step-subtitle">不足・未支給の対象を選択してください（部品・包材 両方可／複数選択可）</div></div>
+    </div>
+    <div class="type-btns">
+      <div class="type-btn" id="type-parts" onclick="toggleCategory('parts')">
+        <div class="tb-icon">🔩</div><div class="tb-label">部品</div>
+      </div>
+      <div class="type-btn" id="type-packing" onclick="toggleCategory('packing')">
+        <div class="tb-icon">📦</div><div class="tb-label">包材</div>
+      </div>
+    </div>
+    <div id="parts-list-wrap" style="display:none;margin-bottom:14px;">
+      <div class="card-title">部品（構成部品）を選択（複数可）</div>
+      <div id="parts-list" class="chk-list"></div>
+    </div>
+    <div id="packing-list-wrap" style="display:none;margin-bottom:14px;">
+      <div class="card-title">包材を選択（複数可）</div>
+      <div id="packing-list" class="chk-list"></div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:8px;">
+      <button class="btn btn-ghost" onclick="gotoStep(2)">← 戻る</button>
+      <button class="btn btn-primary" style="flex:1;" id="step3-next-btn" disabled onclick="gotoStep(4)">次へ →</button>
+    </div>
+  </div>
+
+  <!-- STEP4: 報告内容入力・送信 -->
+  <div id="step4" style="display:none;">
+    <div class="step-header">
+      <div class="step-num active">4</div>
+      <div><div class="step-title">報告内容入力</div><div class="step-subtitle">選択した部品・包材ごとに内容を入力してください</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">自動入力情報</div>
+      <div class="form-group"><label class="form-label">報告者</label><input type="text" id="f-reporter" class="inp" readonly></div>
+      <div class="form-group"><label class="form-label">品番</label><input type="text" id="f-item-code" class="inp" readonly></div>
+      <div class="form-group"><label class="form-label">品名</label><input type="text" id="f-item-name" class="inp" readonly></div>
+      <div class="form-group"><label class="form-label">指示数（依頼書）</label><input type="text" id="f-order-qty" class="inp" readonly></div>
+      <div class="form-group"><label class="form-label">納期</label><input type="text" id="f-due-date" class="inp" readonly></div>
+      <div class="form-group"><label class="form-label">作業依頼書番号</label><input type="text" id="f-work-order" class="inp" readonly></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">報告内容入力（対象ごと）</div>
+      <div id="comp-cards"></div>
+    </div>
+
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-ghost" onclick="gotoStep(3)">← 戻る</button>
+      <button class="btn btn-success" style="flex:1;" id="submit-btn" onclick="submitReport()">✓ 報告送信</button>
+    </div>
+    <div style="height:16px;"></div>
+  </div>
+</div>
+
+<!-- ══════ SCREEN 2: 履歴 ══════ -->
+<div class="screen" id="sc-history">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+    <div style="font-size:18px;font-weight:800;">履歴</div>
+    <button class="btn btn-ghost btn-sm" onclick="loadHistory()">再取得</button>
+  </div>
+  <div id="history-list"></div>
+</div>
+
+<!-- ══════ SCREEN 3: 送信 ══════ -->
+<div class="screen" id="sc-send">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+    <div style="font-size:18px;font-weight:800;">納入遅延報告書のメール送信</div>
+    <button class="btn btn-ghost btn-sm" onclick="loadSendSheetList()">再取得</button>
+  </div>
+  <div class="card">
+    <div class="form-group">
+      <label class="form-label">送信する報告書（日付）<span class="req">*</span></label>
+      <select id="send-sheet-sel" class="inp"></select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">宛先 To<span class="req">*</span></label>
+      <input type="text" id="send-to-inp" class="inp" placeholder="example@roki.co.jp（複数はカンマ区切り）">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Cc（任意）</label>
+      <input type="text" id="send-cc-inp" class="inp" placeholder="自分宛など（複数はカンマ区切り）">
+    </div>
+    <div class="form-group">
+      <label class="form-label">件名</label>
+      <input type="text" id="send-subject-inp" class="inp">
+    </div>
+    <div class="form-group">
+      <label class="form-label">本文</label>
+      <textarea id="send-body-inp" class="inp" rows="7" style="resize:vertical;"></textarea>
+    </div>
+    <button class="btn btn-success btn-full btn-lg" id="send-email-btn" onclick="sendDelayReportEmail()">📧 PDFを開く ＋ Outlookで作成</button>
+    <div style="font-size:15px;color:var(--text3);margin-top:10px;line-height:1.6;">
+      ① 報告書PDFが新しいタブで開きます（保存してください）<br>
+      ② Outlookの新規メール作成画面が宛先・件名・本文入りで開きます<br>
+      ③ 保存したPDFをメールにドラッグ＆ドロップで添付し、送信してください<br>
+      ※ Outlookが既定のメールアプリとして設定されている必要があります
+    </div>
+  </div>
+</div>
+
+<!-- ══════ SCREEN 4: 設定 ══════ -->
+<div class="screen" id="sc-settings">
+  <div style="font-size:18px;font-weight:800;margin-bottom:18px;">設定</div>
+  <div class="card">
+    <div class="card-title">GAS エンドポイント</div>
+    <div class="form-group"><input type="url" id="gas-url-inp" class="inp" placeholder="https://script.google.com/..."></div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-primary btn-sm" onclick="saveGasUrl()">保存</button>
+      <button class="btn btn-ghost btn-sm" onclick="testGasUrl()">疎通確認</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-wrap"></div>
+
+<script>
+'use strict';
+
+// ══════════════════════════════════════════
+// アプリ状態
+// ══════════════════════════════════════════
+let GAS_URL = localStorage.getItem('delay_gas_url') || '';
+let MASTER_ITEMS = new Map();
+let WORK_ORDERS_MAP = new Map();
+let WORKERS_MAP = new Map();
+
+let workerQrFailCount = 0;
+const WORKER_QR_FAIL_LIMIT = 3;
+
+// ── ロール制御（作業者マスタのrole列で判定。異常報告アプリと同一方式） ──
+// operator: 報告のみ / kanri: 報告+履歴+送信 / administrator: 全て / viewer: 履歴のみ
+let ROLE = 'operator';
+
+// ── WMS連携（管理タブから開いた場合の自動ログイン。異常報告アプリと同一方式） ──
+let WMS_PENDING = null; // { wid, wname, role }
+
+function readWmsParams() {
+  const p = new URLSearchParams(location.search);
+  const wid   = p.get('wid')   || '';
+  const wname = p.get('wname') || '';
+  const role  = p.get('role')  || '';
+  if (wid) WMS_PENDING = { wid, wname, role };
+}
+readWmsParams();
+
+// postMessage受信（window.open後にWMSが送るケース）
+window.addEventListener('message', (e) => {
+  if (!e.data || e.data.type !== 'delay_init') return;
+  const wid   = e.data.workerId   || '';
+  const wname = e.data.workerName || wid;
+  const role  = e.data.role       || '';
+  if (!wid) return;
+  WMS_PENDING = { wid, wname, role };
+  // マスタ取得済みなら即座に自動ログイン試行
+  if (WORKERS_MAP.size > 0) tryWmsAutoLogin();
+});
+
+// マスタ取得後に呼び出す自動ログイン処理
+function tryWmsAutoLogin() {
+  if (!WMS_PENDING) return;
+  const { wid, wname, role: wmsRole } = WMS_PENDING;
+  WMS_PENDING = null;
+  if (!wid) return;
+
+  const worker = WORKERS_MAP.get(wid);
+  if (worker) {
+    // 作業者マスタにヒット → マスタのroleを信頼（信頼できる情報源）
+    setWorkerFound(wid, worker.name || wid);
+  } else {
+    // マスタ未登録 → WMSのroleでフォールバック
+    setWorkerFound(wid, wname || wid, wmsRole || 'operator');
+  }
+  const inp = document.getElementById('worker-qr-inp');
+  if (inp) inp.value = '';
+}
+
+let SESSION = {
+  workerQrNo: '', workerName: '',
+  itemCode: '', itemName: '', custPartNo: '', maker: '',
+  selectedDueDate: '', workOrderNo: '', orderQty: '',
+  activeCategories: { parts: false, packing: false },
+  selectedComponents: [], // [{key, code, name, category}]
+  componentReports: {},   // key -> {content:'不足'|'未支給', qty:Number}
+};
+
+// ══════════════════════════════════════════
+// 初期化
+// ══════════════════════════════════════════
+async function initApp() {
+  document.getElementById('loading-retry-btn').style.display = 'none';
+  if (!GAS_URL) {
+    document.getElementById('setup-screen').classList.add('active');
+    return;
+  }
+  showLoading('マスタ取得中...');
+  try {
+    const result = await gasGet('getAnomalyMaster');
+    if (!result.ok) throw new Error(result.error || 'マスタ取得失敗');
+    applyMaster(result);
+    hideLoading();
+  } catch (e) {
+    hideLoading();
+    document.getElementById('loading-msg').textContent = 'マスタ取得に失敗しました: ' + e.message;
+    document.getElementById('loading-retry-btn').style.display = 'inline-block';
+    showLoading();
+  }
+}
+
+async function onSetupSave() {
+  const url = document.getElementById('setup-gas-url').value.trim();
+  const errEl = document.getElementById('setup-err');
+  if (!url || !url.startsWith('https://')) { errEl.textContent = 'https:// から始まる URL を入力してください'; return; }
+  errEl.textContent = '';
+  GAS_URL = url;
+  localStorage.setItem('delay_gas_url', url);
+  document.getElementById('setup-screen').classList.remove('active');
+  showLoading('接続確認中...');
+  try {
+    const result = await gasGet('getAnomalyMaster');
+    if (!result.ok) throw new Error(result.error || 'マスタ取得失敗');
+    applyMaster(result);
+    hideLoading();
+    showToast('✓ 接続完了・マスタを取得しました', 'success');
+  } catch (e) {
+    hideLoading();
+    GAS_URL = '';
+    localStorage.removeItem('delay_gas_url');
+    document.getElementById('setup-gas-url').value = url;
+    document.getElementById('setup-err').textContent = 'GAS への接続に失敗しました: ' + e.message;
+    document.getElementById('setup-screen').classList.add('active');
+  }
+}
+
+function applyMaster(result) {
+  MASTER_ITEMS.clear();
+  (result.masterItems || []).forEach(m => MASTER_ITEMS.set(String(m.itemCode || ''), m));
+
+  WORK_ORDERS_MAP.clear();
+  (result.workOrders || []).forEach(wo => {
+    const itemCode = String(wo.ItemCode || wo.itemCode || '').trim();
+    const supplyCode = String(wo.SupplyItemCode || wo.supplyItemCode || '').trim();
+    const masterEntry = MASTER_ITEMS.get(itemCode);
+    const custPartNo = masterEntry ? String(masterEntry.custPartNo || '').trim() : '';
+    [itemCode, supplyCode, custPartNo].filter(Boolean).forEach(k => {
+      if (!WORK_ORDERS_MAP.has(k)) WORK_ORDERS_MAP.set(k, []);
+      WORK_ORDERS_MAP.get(k).push(wo);
+      const kl = k.toLowerCase();
+      if (kl !== k) {
+        if (!WORK_ORDERS_MAP.has(kl)) WORK_ORDERS_MAP.set(kl, []);
+        WORK_ORDERS_MAP.get(kl).push(wo);
+      }
+    });
+  });
+
+  WORKERS_MAP.clear();
+  (result.workers || []).forEach(w => {
+    const key = String(w.employeeQrNo || w.empNo || '');
+    if (key) WORKERS_MAP.set(key, w);
+  });
+
+  const now = new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
+  document.getElementById('sync-status').textContent = '更新: ' + now;
+
+  // WMSから開かれていれば自動ログインを試行（URLパラメータ経由のケース）
+  if (WMS_PENDING) tryWmsAutoLogin();
+}
+
+async function syncMaster(manual = false) {
+  if (!GAS_URL) return;
+  try {
+    const result = await gasGet('getAnomalyMaster');
+    if (result.ok) { applyMaster(result); if (manual) showToast('✓ マスタを更新しました', 'success'); }
+  } catch (e) { if (manual) showToast('更新失敗: ' + e.message, 'error'); }
+}
+
+// ══════════════════════════════════════════
+// タブ切り替え
+// ══════════════════════════════════════════
+function switchTab(tab) {
+  const isAdmin = ROLE === 'administrator';
+  const isKanri = isAdmin || ROLE === 'kanri';
+  if (tab === 'report' && ROLE === 'viewer') { showToast('閲覧専用ロールは使用できません', 'error'); return; }
+  if (tab === 'send' && !isKanri) { showToast('kanri以上のみ使用できます', 'error'); return; }
+  if (tab === 'settings' && !isAdmin) { showToast('administratorのみ使用できます', 'error'); return; }
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('sc-' + tab).classList.add('active');
+  if (tab === 'history') loadHistory();
+  if (tab === 'send') loadSendSheetList();
+  if (tab === 'settings') document.getElementById('gas-url-inp').value = GAS_URL;
+}
+
+// ══════════════════════════════════════════
+// STEP ナビゲーション
+// ══════════════════════════════════════════
+function gotoStep(n) {
+  for (let i = 1; i <= 4; i++) {
+    const el = document.getElementById('step' + i);
+    if (el) el.style.display = i === n ? 'block' : 'none';
+  }
+  updateStepNav(n);
+  window.scrollTo(0, 0);
+  if (n === 4) fillStep4();
+  if (n !== 2 && manualInputMode) {
+    manualInputMode = false;
+    const btn = document.getElementById('manual-input-toggle-btn');
+    const badge = document.getElementById('manual-input-mode-badge');
+    const inp = document.getElementById('item-scan-inp');
+    if (btn) { btn.className = 'btn btn-ghost btn-sm'; btn.textContent = '✏️ 手入力'; }
+    if (badge) badge.style.display = 'none';
+    if (inp) { inp.placeholder = 'スキャン待機中'; inp.value = ''; inp.onkeydown = null; }
+  }
+  setTimeout(() => focusScanInput(), 150);
+}
+
+let manualInputMode = false;
+function focusScanInput() {
+  if (manualInputMode) return;
+  const step1 = document.getElementById('step1');
+  const step2 = document.getElementById('step2');
+  if (step1 && step1.style.display !== 'none') {
+    const inp = document.getElementById('worker-qr-inp'); if (inp) inp.focus({ preventScroll: true });
+  } else if (step2 && step2.style.display !== 'none') {
+    const inp = document.getElementById('item-scan-inp'); if (inp) inp.focus({ preventScroll: true });
+  }
+}
+
+function updateStepNav(active) {
+  for (let i = 1; i <= 4; i++) {
+    const dot = document.getElementById('sn' + i);
+    const line = document.getElementById('sl' + i);
+    if (i < active) { dot.className = 'sn-dot done'; if (line) line.className = 'sn-line done'; }
+    else if (i === active) { dot.className = 'sn-dot active'; }
+    else { dot.className = 'sn-dot pending'; if (line) line.className = 'sn-line'; }
+  }
+}
+
+// ══════════════════════════════════════════
+// STEP 1: 作業者確認
+// ══════════════════════════════════════════
+let workerQrTimer = null;
+function onWorkerQrInput(val) {
+  clearTimeout(workerQrTimer);
+  workerQrTimer = setTimeout(() => resolveWorkerQr(val.trim()), 400);
+}
+function resolveWorkerQr(qr) {
+  if (!qr) return;
+  const worker = WORKERS_MAP.get(qr);
+  if (worker) {
+    setWorkerFound(qr, worker.name || worker.employeeQrNo || qr);
+    document.getElementById('worker-qr-inp').value = '';
+  } else {
+    workerQrFailCount++;
+    showToast(`QRコード "${qr}" が見つかりません (${workerQrFailCount}/${WORKER_QR_FAIL_LIMIT})`, 'error');
+    document.getElementById('worker-qr-inp').value = '';
+    if (workerQrFailCount >= WORKER_QR_FAIL_LIMIT) showWorkerManual();
+  }
+}
+function setWorkerFound(qrNo, name, roleOverride) {
+  SESSION.workerQrNo = qrNo;
+  SESSION.workerName = name;
+  const worker = WORKERS_MAP.get(qrNo);
+  ROLE = (worker && worker.role) ? worker.role : (roleOverride || 'operator');
+  document.getElementById('wi-name').textContent = name;
+  document.getElementById('worker-info-panel').classList.add('active');
+  document.getElementById('step1-next-btn').disabled = false;
+  applyRoleTabVisibility();
+  showToast('✓ ' + name, 'success');
+}
+
+// ── ロールに応じたタブ表示制御 ──
+function applyRoleTabVisibility() {
+  const isAdmin = ROLE === 'administrator';
+  const isKanri = isAdmin || ROLE === 'kanri';
+  const isViewer = ROLE === 'viewer';
+
+  const tabReport   = document.querySelector('.tab-btn[data-tab="report"]');
+  const tabHistory  = document.querySelector('.tab-btn[data-tab="history"]');
+  const tabSend     = document.querySelector('.tab-btn[data-tab="send"]');
+  const tabSettings = document.querySelector('.tab-btn[data-tab="settings"]');
+
+  if (tabReport)   tabReport.style.display   = isViewer ? 'none' : '';
+  if (tabHistory)  tabHistory.style.display  = (isKanri || isViewer) ? '' : 'none';
+  if (tabSend)     tabSend.style.display     = isKanri ? '' : 'none';
+  if (tabSettings) tabSettings.style.display = isAdmin ? '' : 'none';
+
+  // viewer: 報告STEPは使用不可。履歴タブへ自動遷移
+  if (isViewer) switchTab('history');
+}
+function showWorkerManual() {
+  const sel = document.getElementById('worker-manual-sel');
+  sel.innerHTML = `<option value="">-- 選択 --</option>`;
+  WORKERS_MAP.forEach((w, qrNo) => {
+    const opt = document.createElement('option');
+    opt.value = qrNo; opt.textContent = (w.name || qrNo);
+    sel.appendChild(opt);
+  });
+  document.getElementById('worker-manual').style.display = 'block';
+}
+function onWorkerManualSelect(qrNo) {
+  if (!qrNo) return;
+  const worker = WORKERS_MAP.get(qrNo);
+  if (worker) setWorkerFound(qrNo, worker.name || qrNo);
+}
+
+// ══════════════════════════════════════════
+// STEP 2: 品番スキャン（異常報告アプリと同一ロジック）
+// ══════════════════════════════════════════
+function normItemCode(code) {
+  if (code === null || code === undefined) return code;
+  return String(code).replace(/\+\d+$/, '').trim();
+}
+function findMasterEntry(itemCode) {
+  if (!itemCode) return null;
+  const norm = normItemCode(itemCode);
+  const items = Array.from(MASTER_ITEMS.values());
+  let m = items.find(x => x.itemCode === itemCode); if (m) return m;
+  m = items.find(x => x.custPartNo && x.custPartNo === itemCode); if (m) return m;
+  m = items.find(x => normItemCode(x.itemCode) === norm); if (m) return m;
+  m = items.find(x => x.custPartNo && normItemCode(x.custPartNo) === norm); if (m) return m;
+  m = items.find(x => x.custPartNo && normItemCode(x.custPartNo).startsWith(norm + '-'));
+  return m || null;
+}
+function resolveItemCode(code) {
+  if (!code) return code;
+  const master = findMasterEntry(code);
+  return (master && master.itemCode) ? master.itemCode : code;
+}
+function isoToDateStr(s) {
+  if (!s) return '';
+  var str = String(s);
+  if (str.indexOf('T') !== -1) {
+    var dt = new Date(str);
+    if (!isNaN(dt)) return dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0') + '-' + String(dt.getDate()).padStart(2, '0');
+  }
+  if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
+  if (/^\d{4}\/\d{2}\/\d{2}$/.test(str)) return str.replace(/\//g, '-');
+  return str;
+}
+function toIsoDate(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+
+let itemScanTimer = null;
+function onItemScanInput(val) {
+  if (manualInputMode) return;
+  clearTimeout(itemScanTimer);
+  itemScanTimer = setTimeout(() => resolveItemScan(val.trim()), 400);
+}
+function toggleManualInputMode() {
+  manualInputMode = !manualInputMode;
+  const btn = document.getElementById('manual-input-toggle-btn');
+  const badge = document.getElementById('manual-input-mode-badge');
+  const inp = document.getElementById('item-scan-inp');
+  if (manualInputMode) {
+    btn.className = 'btn btn-warning btn-sm'; btn.textContent = '✏️ 手入力中';
+    if (badge) badge.style.display = 'block';
+    if (inp) {
+      inp.placeholder = '品番を入力してEnterで確定'; inp.value = ''; inp.focus({ preventScroll: true });
+      inp.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); const v = inp.value.trim(); if (v) resolveItemScan(v); } };
+    }
+  } else {
+    btn.className = 'btn btn-ghost btn-sm'; btn.textContent = '✏️ 手入力';
+    if (badge) badge.style.display = 'none';
+    if (inp) { inp.placeholder = 'スキャン待機中'; inp.value = ''; inp.onkeydown = null; }
+  }
+}
+function resolveItemScan(code) {
+  if (!code) return;
+  document.getElementById('item-scan-inp').value = '';
+  const masterItem = findMasterEntry(code);
+  if (!masterItem) { showToast(`品番 "${code}" が基幹マスタに見つかりません`, 'error'); return; }
+
+  SESSION.itemCode = String(masterItem.itemCode || '');
+  SESSION.itemName = String(masterItem.itemName || '');
+  SESSION.custPartNo = String(masterItem.custPartNo || '');
+  SESSION.maker = String(masterItem.makerName || '');
+
+  document.getElementById('ii-code').textContent = SESSION.itemCode;
+  document.getElementById('ii-name').textContent = SESSION.itemName;
+  document.getElementById('ii-maker').textContent = SESSION.maker;
+  document.getElementById('ii-custpart').textContent = SESSION.custPartNo;
+  document.getElementById('item-info-panel').classList.add('active');
+
+  const normCode = normItemCode(code);
+  const resolved = resolveItemCode(code);
+  const normResolved = normItemCode(resolved);
+  function custPrefixMatch(custPartNo, scanCode) {
+    if (!custPartNo || !scanCode) return false;
+    return normItemCode(custPartNo).startsWith(normItemCode(scanCode) + '-');
+  }
+  const codesFromMaster = [];
+  Array.from(MASTER_ITEMS.values()).forEach(m => {
+    const matchCust = m.custPartNo && (m.custPartNo === code || normItemCode(m.custPartNo) === normCode || custPrefixMatch(m.custPartNo, code));
+    const matchSupply = m.supplyCode1 && (m.supplyCode1 === code || normItemCode(m.supplyCode1) === normCode);
+    if (matchCust || matchSupply) {
+      if (m.itemCode && codesFromMaster.indexOf(m.itemCode) === -1) codesFromMaster.push(m.itemCode);
+      if (m.itemCode && codesFromMaster.indexOf(normItemCode(m.itemCode)) === -1) codesFromMaster.push(normItemCode(m.itemCode));
+    }
+  });
+  const allWorkOrders = [];
+  WORK_ORDERS_MAP.forEach(arr => arr.forEach(wo => { if (!allWorkOrders.find(x => x.WorkOrderNo === wo.WorkOrderNo)) allWorkOrders.push(wo); }));
+  let matchOrders = allWorkOrders.filter(o => {
+    if (o.status && o.status === '完了') return false;
+    const oCode = String(o.ItemCode || o.itemCode || '');
+    const oSupply = String(o.SupplyItemCode || o.supplyItemCode || '');
+    if (oCode === code || oSupply === code) return true;
+    if (normItemCode(oCode) === normCode || normItemCode(oSupply) === normCode) return true;
+    if (oCode === resolved || oSupply === resolved) return true;
+    if (normItemCode(oCode) === normResolved || normItemCode(oSupply) === normResolved) return true;
+    if (codesFromMaster.indexOf(oCode) !== -1 || codesFromMaster.indexOf(oSupply) !== -1) return true;
+    if (codesFromMaster.indexOf(normItemCode(oCode)) !== -1 || codesFromMaster.indexOf(normItemCode(oSupply)) !== -1) return true;
+    return false;
+  });
+
+  const dueDateSection = document.getElementById('duedate-section');
+  const dueDateList = document.getElementById('duedate-list');
+  if (matchOrders.length === 0) {
+    SESSION.workOrderNo = ''; SESSION.selectedDueDate = ''; SESSION.orderQty = '';
+    dueDateSection.style.display = 'none';
+    document.getElementById('step2-next-btn').disabled = false;
+    showToast('作業依頼書が見つかりません。納期・指示数は手入力扱いになります。', 'warning');
+  } else if (matchOrders.length === 1) {
+    selectWorkOrder(matchOrders[0]);
+    dueDateSection.style.display = 'none';
+    document.getElementById('step2-next-btn').disabled = false;
+  } else {
+    SESSION.workOrderNo = ''; SESSION.selectedDueDate = ''; SESSION.orderQty = '';
+    dueDateSection.style.display = 'block';
+    dueDateList.innerHTML = matchOrders.map(wo => `
+      <div class="duedate-opt" tabindex="-1" onclick="selectWorkOrder(${JSON.stringify(wo).replace(/"/g, '&quot;')}, this)">
+        📅 ${isoToDateStr(wo.DueDate) || '—'}　　No. ${wo.WorkOrderNo || '—'}　　Qty: ${wo.OrderQty || '—'}
+      </div>`).join('');
+    document.getElementById('step2-next-btn').disabled = true;
+    showToast('納期が複数あります。選択してください。', 'info');
+  }
+}
+function selectWorkOrder(wo, el) {
+  SESSION.workOrderNo = String(wo.WorkOrderNo || '');
+  SESSION.selectedDueDate = isoToDateStr(wo.DueDate || '');
+  SESSION.orderQty = wo.OrderQty ? String(wo.OrderQty) : '';
+  if (el) { document.querySelectorAll('.duedate-opt').forEach(e => e.classList.remove('selected')); el.classList.add('selected'); }
+  document.getElementById('step2-next-btn').disabled = false;
+  showToast('✓ 納期: ' + (SESSION.selectedDueDate || '—'), 'success', 2000);
+}
+
+// ══════════════════════════════════════════
+// STEP 3: 対象選択（部品/包材 両方トグル可・複数選択可）
+// ══════════════════════════════════════════
+function toggleCategory(cat) {
+  SESSION.activeCategories[cat] = !SESSION.activeCategories[cat];
+  document.getElementById('type-parts').classList.toggle('on-parts', SESSION.activeCategories.parts);
+  document.getElementById('type-packing').classList.toggle('on-packing', SESSION.activeCategories.packing);
+  document.getElementById('parts-list-wrap').style.display = SESSION.activeCategories.parts ? 'block' : 'none';
+  document.getElementById('packing-list-wrap').style.display = SESSION.activeCategories.packing ? 'block' : 'none';
+  if (SESSION.activeCategories.parts) buildPartsList();
+  if (SESSION.activeCategories.packing) buildPackingList();
+  // OFFにしたカテゴリの選択は除去
+  if (!SESSION.activeCategories.parts) SESSION.selectedComponents = SESSION.selectedComponents.filter(c => c.category !== '部品');
+  if (!SESSION.activeCategories.packing) SESSION.selectedComponents = SESSION.selectedComponents.filter(c => c.category !== '包材');
+  updateStep3NextBtn();
+}
+
+function buildPartsList() {
+  const masterItem = MASTER_ITEMS.get(SESSION.itemCode);
+  const list = document.getElementById('parts-list');
+  let parts = [];
+  if (masterItem) {
+    const raw = masterItem.supplyListJson;
+    if (raw && String(raw).trim() !== '') {
+      try {
+        const parsed = JSON.parse(String(raw));
+        if (Array.isArray(parsed)) {
+          parsed.forEach(function (item) {
+            if (!item) return;
+            const code = String(item.code || item.itemCode || item.supplyCode || item.supplyItemCode || item.Code || item.ItemCode || item.partCode || '').trim();
+            const name = String(item.name || item.itemName || item.supplyName || item.Name || item.ItemName || '').trim();
+            if (code) parts.push({ code, name });
+          });
+        }
+      } catch (e) {
+        String(raw).split(/[,\n]/).map(s => s.trim()).filter(Boolean).forEach(function (s) { parts.push({ code: s, name: '' }); });
+      }
+    }
+    if (parts.length === 0) {
+      for (let i = 1; i <= 14; i++) {
+        const code = String(masterItem['supply' + i + 'Code'] || '').trim();
+        const name = String(masterItem['supply' + i + 'Name'] || '').trim();
+        if (code) parts.push({ code, name });
+      }
+    }
+  }
+  if (parts.length === 0) {
+    list.innerHTML = `<div style="font-size:18px;color:var(--text3);padding:8px;">構成部品データがありません</div>`;
+    return;
+  }
+  list.innerHTML = parts.map(p => {
+    const key = 'parts::' + p.code;
+    const checked = SESSION.selectedComponents.some(c => c.key === key);
+    const display = p.name ? `${p.code}　${p.name}` : p.code;
+    const codeEsc = p.code.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    const nameEsc = (p.name || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    return `<div class="packing-chk cat-parts${checked ? ' checked' : ''}" onclick="toggleComponent(this,'部品','${codeEsc}','${nameEsc}')">${display}</div>`;
+  }).join('');
+}
+
+function buildPackingList() {
+  const masterItem = MASTER_ITEMS.get(SESSION.itemCode);
+  const packingCols = [
+    'innerMat1', 'innerMat2', 'innerMat3', 'innerMat4', 'innerMat5', 'innerMat6', 'innerMat7', 'innerMat8',
+    'midSheet1Mat1', 'midSheet1Mat2', 'midSheet1Mat3', 'midSheet1Mat4', 'midSheet1Mat5',
+    'midSheet2Mat1', 'midSheet2Mat2', 'midSheet2Mat3', 'midSheet2Mat4', 'midSheet2Mat5',
+    'outerMat1', 'outerMat2', 'outerMat3', 'outerMat4', 'outerMat5', 'outerMat6', 'outerMat7', 'outerMat8',
+  ];
+  const values = new Set();
+  if (masterItem) packingCols.forEach(col => { const v = String(masterItem[col] || '').trim(); if (v) values.add(v); });
+  const list = document.getElementById('packing-list');
+  if (values.size === 0) { list.innerHTML = '<div style="font-size:18px;color:var(--text3);">包材データがありません</div>'; return; }
+  list.innerHTML = [...values].map(v => {
+    const key = 'packing::' + v;
+    const checked = SESSION.selectedComponents.some(c => c.key === key);
+    const vEsc = v.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    return `<div class="packing-chk cat-packing${checked ? ' checked' : ''}" onclick="toggleComponent(this,'包材','${vEsc}','')">${v}</div>`;
+  }).join('');
+}
+
+function toggleComponent(el, category, code, name) {
+  const key = (category === '部品' ? 'parts' : 'packing') + '::' + code;
+  el.classList.toggle('checked');
+  if (el.classList.contains('checked')) {
+    if (!SESSION.selectedComponents.some(c => c.key === key)) SESSION.selectedComponents.push({ key, code, name, category });
+  } else {
+    SESSION.selectedComponents = SESSION.selectedComponents.filter(c => c.key !== key);
+    delete SESSION.componentReports[key];
+  }
+  updateStep3NextBtn();
+}
+
+function updateStep3NextBtn() {
+  document.getElementById('step3-next-btn').disabled = SESSION.selectedComponents.length === 0;
+}
+
+// ══════════════════════════════════════════
+// STEP 4: 報告内容入力・送信
+// ══════════════════════════════════════════
+function fillStep4() {
+  setValue('f-reporter', SESSION.workerName);
+  setValue('f-item-code', SESSION.itemCode);
+  setValue('f-item-name', SESSION.itemName);
+  setValue('f-order-qty', SESSION.orderQty);
+  setValue('f-due-date', SESSION.selectedDueDate);
+  setValue('f-work-order', SESSION.workOrderNo);
+  renderCompCards();
+}
+function setValue(id, val) { const el = document.getElementById(id); if (el) el.value = val || ''; }
+
+function renderCompCards() {
+  const wrap = document.getElementById('comp-cards');
+  wrap.innerHTML = SESSION.selectedComponents.map(c => {
+    const rep = SESSION.componentReports[c.key] || {};
+    const badgeClass = c.category === '部品' ? 'badge-orange' : 'badge-blue';
+    const display = c.name ? `${c.code}　${c.name}` : c.code;
+    return `
+      <div class="comp-card${rep.content ? ' filled' : ''}" id="card-${cssEsc(c.key)}">
+        <div class="comp-head">
+          <span class="badge ${badgeClass}">${c.category}</span>
+          <span class="comp-code">${escHtml(display)}</span>
+        </div>
+        <div class="content-btns">
+          <div class="content-btn${rep.content === '不足' ? ' selected-shortage' : ''}" onclick="setCompContent('${jsEsc(c.key)}','不足')">不足</div>
+          <div class="content-btn${rep.content === '未支給' ? ' selected-unsupplied' : ''}" onclick="setCompContent('${jsEsc(c.key)}','未支給')">未支給</div>
+        </div>
+        <div class="comp-qty-row${rep.content === '不足' ? ' show' : ''}" id="qtyrow-${cssEsc(c.key)}">
+          <label class="form-label">不足数量<span class="req">*</span></label>
+          <input type="number" class="inp" min="1" placeholder="不足数量を入力"
+                 value="${rep.content === '不足' && rep.qty ? rep.qty : ''}"
+                 oninput="setCompQty('${jsEsc(c.key)}', this.value)">
+        </div>
+        <div class="comp-qty-row${rep.content === '未支給' ? ' show' : ''}" id="qtyauto-${cssEsc(c.key)}">
+          <label class="form-label">数量（依頼書の指示数を自動入力）</label>
+          <input type="text" class="inp" readonly value="${rep.content === '未支給' ? (rep.qty || '') : ''}">
+        </div>
+      </div>`;
+  }).join('');
+}
+function cssEsc(s) { return String(s).replace(/[^a-zA-Z0-9_-]/g, '_'); }
+function jsEsc(s) { return String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'"); }
+
+function setCompContent(key, content) {
+  const cur = SESSION.componentReports[key] || {};
+  if (content === '未支給') {
+    const qty = SESSION.orderQty ? Number(SESSION.orderQty) : '';
+    SESSION.componentReports[key] = { content: '未支給', qty };
+    if (!SESSION.orderQty) showToast('依頼書の指示数が不明のため、数量を手動入力してください', 'warning');
+  } else {
+    SESSION.componentReports[key] = { content: '不足', qty: cur.content === '不足' ? cur.qty : '' };
+  }
+  renderCompCards();
+}
+function setCompQty(key, val) {
+  const cur = SESSION.componentReports[key] || { content: '不足' };
+  cur.qty = val ? Number(val) : '';
+  SESSION.componentReports[key] = cur;
+}
+
+async function submitReport() {
+  if (ROLE === 'viewer') { showToast('閲覧専用ロールは操作できません', 'error'); return; }
+  if (!SESSION.workerName) { showToast('作業者が未設定です', 'error'); return; }
+  if (!SESSION.itemCode) { showToast('品番が未設定です', 'error'); return; }
+  if (SESSION.selectedComponents.length === 0) { showToast('部品・包材を1件以上選択してください', 'error'); return; }
+
+  const items = [];
+  for (const c of SESSION.selectedComponents) {
+    const rep = SESSION.componentReports[c.key];
+    if (!rep || !rep.content) { showToast(`「${c.code}」の報告内容（不足/未支給）を選択してください`, 'error'); return; }
+    if (rep.content === '不足' && (!rep.qty || Number(rep.qty) <= 0)) { showToast(`「${c.code}」の不足数量を入力してください`, 'error'); return; }
+    if (rep.content === '未支給' && (!rep.qty || Number(rep.qty) <= 0)) { showToast(`「${c.code}」の数量が未確定です。手動で入力してください`, 'error'); return; }
+    items.push({ category: c.category, code: c.code, name: c.name || '', content: rep.content, qty: Number(rep.qty) });
+  }
+
+  if (!GAS_URL) { showToast('GAS URLが未設定です', 'error'); return; }
+
+  const record = {
+    reportDate: toIsoDate(new Date()),
+    reporter: SESSION.workerName,
+    itemCode: SESSION.itemCode,
+    itemName: SESSION.itemName,
+    custPartNo: SESSION.custPartNo,
+    maker: SESSION.maker,
+    workOrderNo: SESSION.workOrderNo,
+    dueDate: SESSION.selectedDueDate,
+    orderQty: SESSION.orderQty ? Number(SESSION.orderQty) : '',
+    items: items,
+    terminal: navigator.userAgent.substring(0, 20) || 'browser',
+  };
+
+  showLoading('送信中...');
+  try {
+    const result = await gasPost('recordDelayReport', record);
+    if (!result.ok) throw new Error(result.error || '送信失敗');
+    hideLoading();
+    let msg = '✓ 報告を送信しました (ID: ' + result.reportId + ')';
+    if (result.sheetName) msg += ' / 報告書: ' + result.sheetName;
+    showToast(msg, 'success', 6000);
+    if (!result.sheetName) {
+      var warnMsg = '⚠ データは保存されましたが、納入遅延報告書への反映に失敗しました。';
+      if (result.buildError) warnMsg += '（' + result.buildError + '）';
+      showToast(warnMsg, 'warning', 8000);
+    }
+    resetReportForm();
+  } catch (e) {
+    hideLoading();
+    showToast('送信エラー: ' + e.message, 'error');
+  }
+}
+
+function resetReportForm() {
+  SESSION.workerQrNo = ''; SESSION.workerName = '';
+  SESSION.itemCode = ''; SESSION.itemName = ''; SESSION.custPartNo = ''; SESSION.maker = '';
+  SESSION.selectedDueDate = ''; SESSION.workOrderNo = ''; SESSION.orderQty = '';
+  SESSION.activeCategories = { parts: false, packing: false };
+  SESSION.selectedComponents = [];
+  SESSION.componentReports = {};
+  workerQrFailCount = 0;
+  ROLE = 'operator';
+  applyRoleTabVisibility();
+
+  gotoStep(1);
+  document.getElementById('worker-qr-inp').value = '';
+  document.getElementById('worker-info-panel').classList.remove('active');
+  document.getElementById('step1-next-btn').disabled = true;
+  document.getElementById('item-info-panel').classList.remove('active');
+  document.getElementById('item-scan-inp').value = '';
+  document.getElementById('step2-next-btn').disabled = true;
+  document.getElementById('worker-manual').style.display = 'none';
+  document.getElementById('type-parts').className = 'type-btn';
+  document.getElementById('type-packing').className = 'type-btn';
+  document.getElementById('parts-list-wrap').style.display = 'none';
+  document.getElementById('packing-list-wrap').style.display = 'none';
+  document.getElementById('step3-next-btn').disabled = true;
+
+  manualInputMode = false;
+  const toggleBtn = document.getElementById('manual-input-toggle-btn');
+  const modeBadge = document.getElementById('manual-input-mode-badge');
+  if (toggleBtn) { toggleBtn.className = 'btn btn-ghost btn-sm'; toggleBtn.textContent = '✏️ 手入力'; }
+  if (modeBadge) modeBadge.style.display = 'none';
+
+  switchTab('report');
+  setTimeout(() => focusScanInput(), 100);
+}
+
+// ══════════════════════════════════════════
+// 履歴
+// ══════════════════════════════════════════
+async function loadHistory() {
+  const wrap = document.getElementById('history-list');
+  wrap.innerHTML = '<div style="color:var(--text3);font-size:18px;padding:8px;">読込中...</div>';
+  try {
+    const result = await gasGet('getDelayReportHistory');
+    if (!result.ok) throw new Error(result.error || '取得失敗');
+    const list = (result.reports || []).slice().sort((a, b) => (b.createdAt || '') > (a.createdAt || '') ? 1 : -1);
+    if (list.length === 0) { wrap.innerHTML = '<div style="color:var(--text3);font-size:18px;padding:8px;">履歴がありません</div>'; return; }
+    wrap.innerHTML = list.map(r => {
+      let items = [];
+      try { items = JSON.parse(r.itemsJson || '[]'); } catch (e) { items = []; }
+      const lines = items.map(it => `${escHtml(it.code)}：${it.content === '不足' ? '不足 ' + it.qty + '個' : '未支給 ' + (it.qty || '') + '個'}`).join('<br>');
+      return `
+        <div class="hist-card">
+          <div class="hist-head"><span class="hist-item">${escHtml(r.itemCode)} ${escHtml(r.itemName || '')}</span><span class="hist-date">${escHtml(r.reportDate || '')}</span></div>
+          <div class="hist-line">報告者: ${escHtml(r.reporter || '')}　/　依頼書: ${escHtml(r.workOrderNo || '—')}</div>
+          <div class="hist-line" style="margin-top:6px;">${lines}</div>
+        </div>`;
+    }).join('');
+  } catch (e) {
+    wrap.innerHTML = '<div style="color:var(--red2);font-size:18px;padding:8px;">取得エラー: ' + escHtml(e.message) + '</div>';
+  }
+}
+
+// ══════════════════════════════════════════
+// 送信（PDF表示 ＋ Outlook作成画面を開く）
+// ══════════════════════════════════════════
+// 実際に使用しているメール例(2026/6/22)に基づくデフォルト宛先・本文。
+// To/Ccは「表示名 <メールアドレス>」形式（mailto:でもそのまま使用可）。
+const DEFAULT_SEND_TO = [
+  '高野 圭伸 (Kiyonobu Takano) <kiyonobu_takano@roki-jp.com>',
+  '中村 汐美 (Shiomi Nakamura) <shiomi_nakamura@roki-jp.com>',
+].join(', ');
+const DEFAULT_SEND_CC = [
+  '伊藤 忠幸 (Tadayuki Itoh) <tadayuki_itoh@roki-jp.com>',
+  '井上 裕司 (Yuji Inoue) <yuji_inoue@roki-jp.com>',
+  '鈴木 潤 (Jun Suzuki) <jun_suzuki@roki-jp.com>',
+  't2.roki@takeda-c.co.jp',
+  '竹田_倉田 様 <t1.roki@takeda-c.co.jp>',
+  '竹田_金井 様 <t4.roki@takeda-c.co.jp>',
+  '早津工業社 森 剛士 <mori_t@hayatsu-k.thyme.jp>',
+  '早津工業社 浜北工場 江間 勝哉 <hk-hamakita_01@hayatsu-k.thyme.jp>',
+  '早津工業社 浜北工場 加藤 明美 <hk-hamakita_02@hayatsu-k.thyme.jp>',
+].join(', ');
+const DEFAULT_SEND_SUBJECT = '納入遅延報告書';
+const DEFAULT_SEND_BODY =
+  '株式会社ROKI\n生産管理課　ご担当者様\n\n' +
+  'いつも大変お世話になっております。\n' +
+  '早津工業社　梱包Grの吉野でございます。\n\n' +
+  'ご納入につきましてご連絡申し上げます。\n' +
+  '添付いたしました遅延報告書をご確認いただきますよう、何卒よろしくお願い申し上げます。';
+
+let SEND_SHEET_PDF_URLS = {}; // sheetName -> pdfUrl
+
+async function loadSendSheetList() {
+  const sel = document.getElementById('send-sheet-sel');
+  sel.innerHTML = '<option value="">読込中...</option>';
+  const toInp = document.getElementById('send-to-inp');
+  const ccInp = document.getElementById('send-cc-inp');
+  if (!toInp.value) toInp.value = localStorage.getItem('delay_send_to') || DEFAULT_SEND_TO;
+  if (!ccInp.value) ccInp.value = localStorage.getItem('delay_send_cc') || DEFAULT_SEND_CC;
+  try {
+    const result = await gasGet('listDelayReportSheets');
+    if (!result.ok) throw new Error(result.error || '取得失敗');
+    const sheets = result.sheets || [];
+    SEND_SHEET_PDF_URLS = {};
+    sheets.forEach(s => { SEND_SHEET_PDF_URLS[s.sheetName] = s.pdfUrl; });
+    if (sheets.length === 0) {
+      sel.innerHTML = '<option value="">報告書がまだありません</option>';
+      return;
+    }
+    sel.innerHTML = sheets.map(s => `<option value="${escHtml(s.sheetName)}">${escHtml(s.label)}（${s.count}件）</option>`).join('');
+    onSendSheetChange();
+  } catch (e) {
+    sel.innerHTML = '<option value="">取得エラー</option>';
+    showToast('一覧取得エラー: ' + e.message, 'error');
+  }
+}
+function onSendSheetChange() {
+  if (!document.getElementById('send-subject-inp').value) {
+    document.getElementById('send-subject-inp').value = DEFAULT_SEND_SUBJECT;
+  }
+  if (!document.getElementById('send-body-inp').value) {
+    document.getElementById('send-body-inp').value = DEFAULT_SEND_BODY;
+  }
+}
+document.addEventListener('change', (e) => { if (e.target && e.target.id === 'send-sheet-sel') onSendSheetChange(); });
+
+function sendDelayReportEmail() {
+  if (!(ROLE === 'kanri' || ROLE === 'administrator')) { showToast('kanri以上のみ送信できます', 'error'); return; }
+  const sheetName = document.getElementById('send-sheet-sel').value;
+  const to = document.getElementById('send-to-inp').value.trim();
+  const cc = document.getElementById('send-cc-inp').value.trim();
+  const subject = document.getElementById('send-subject-inp').value.trim() || DEFAULT_SEND_SUBJECT;
+  const body = document.getElementById('send-body-inp').value || DEFAULT_SEND_BODY;
+
+  if (!sheetName) { showToast('送信する報告書を選択してください', 'error'); return; }
+  if (!to) { showToast('宛先(To)を入力してください', 'error'); return; }
+
+  localStorage.setItem('delay_send_to', to);
+  localStorage.setItem('delay_send_cc', cc);
+
+  const pdfUrl = SEND_SHEET_PDF_URLS[sheetName];
+  if (pdfUrl) window.open(pdfUrl, '_blank');
+
+  const mailto = 'mailto:' + encodeURIComponent(to).replace(/%2C/g, ',')
+    + '?cc=' + encodeURIComponent(cc)
+    + '&subject=' + encodeURIComponent(subject)
+    + '&body=' + encodeURIComponent(body);
+  // mailtoはOutlookが既定のメールアプリの場合に作成画面を開く
+  setTimeout(() => { window.location.href = mailto; }, 300);
+
+  showToast('PDFを開きました。保存してOutlookのメールに添付してください。', 'info', 7000);
+}
+
+// ══════════════════════════════════════════
+// 設定
+// ══════════════════════════════════════════
+function saveGasUrl() {
+  if (ROLE !== 'administrator') { showToast('administratorのみ設定変更できます', 'error'); return; }
+  const url = document.getElementById('gas-url-inp').value.trim();
+  if (!url || !url.startsWith('https://')) { showToast('https:// から始まる URL を入力してください', 'error'); return; }
+  GAS_URL = url;
+  localStorage.setItem('delay_gas_url', url);
+  showToast('✓ 保存しました', 'success');
+  syncMaster(true);
+}
+async function testGasUrl() {
+  try {
+    const result = await gasGet('getAnomalyMaster');
+    showToast(result.ok ? '✓ 接続成功' : '接続失敗: ' + result.error, result.ok ? 'success' : 'error');
+  } catch (e) { showToast('接続失敗: ' + e.message, 'error'); }
+}
+
+// ══════════════════════════════════════════
+// UI ヘルパー
+// ══════════════════════════════════════════
+function escHtml(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+function showLoading(msg) { const o = document.getElementById('loading-overlay'); if (msg) document.getElementById('loading-msg').textContent = msg; o.classList.add('active'); }
+function hideLoading() { document.getElementById('loading-overlay').classList.remove('active'); }
+function showToast(msg, type = 'info', duration = 3000) {
+  const wrap = document.getElementById('toast-wrap');
+  const el = document.createElement('div');
+  el.className = 'toast ' + type; el.textContent = msg;
+  wrap.appendChild(el);
+  requestAnimationFrame(() => el.classList.add('show'));
+  setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 300); }, duration);
+}
+
+// ══════════════════════════════════════════
+// GAS 通信
+// ══════════════════════════════════════════
+async function gasGet(action, params = {}) {
+  const url = new URL(GAS_URL);
+  url.searchParams.set('action', action);
+  Object.keys(params).forEach(k => url.searchParams.set(k, params[k]));
+  const resp = await fetch(url.toString(), { mode: 'cors' });
+  return await resp.json();
+}
+async function gasPost(action, data = {}) {
+  const body = new URLSearchParams({ action, data: JSON.stringify(data), device: SESSION.workerQrNo || 'browser' });
+  const resp = await fetch(GAS_URL, { method: 'POST', mode: 'cors', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: body.toString() });
+  return await resp.json();
+}
+
+// ── 起動 ──
+window.addEventListener('DOMContentLoaded', () => {
+  initApp();
+  let lastPointerTarget = null;
+  document.addEventListener('pointerdown', (e) => { lastPointerTarget = e.target; }, true);
+  ['worker-qr-inp', 'item-scan-inp'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('blur', () => {
+      if (manualInputMode) return;
+      const t = lastPointerTarget;
+      if (t && t !== el) {
+        const tag = (t.tagName || '').toUpperCase();
+        if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA' || tag === 'BUTTON' || tag === 'A') return;
+        if (t.closest('button, input, select, textarea, a, [tabindex]')) return;
+      }
+      setTimeout(() => focusScanInput(), 80);
+    });
+  });
+});
+</script>
+</body>
+</html>
